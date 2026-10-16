@@ -1,0 +1,4 @@
+// CMSTP Silent INF Profile Install
+// sigma: rules/windows/stealth/proc_creation_cmstp_silent_inf_install.yml | profile: microsoft_xdr
+DeviceProcessEvents
+| where (FolderPath endswith "\\cmstp.exe" or ProcessVersionInfoOriginalFileName =~ "CMSTP.EXE") and (ProcessCommandLine contains " -s " or ProcessCommandLine contains " /s " or ProcessCommandLine contains " –s " or ProcessCommandLine contains " —s " or ProcessCommandLine contains " ―s ") and ProcessCommandLine contains ".inf"

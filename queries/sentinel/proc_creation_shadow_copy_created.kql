@@ -1,0 +1,4 @@
+// Volume Shadow Copy Created From the Command Line
+// sigma: rules/windows/credential_access/proc_creation_shadow_copy_created.yml | profile: microsoft_xdr
+DeviceProcessEvents
+| where (FolderPath endswith "\\vssadmin.exe" and (ProcessCommandLine contains "create" and ProcessCommandLine contains "shadow")) or (FolderPath endswith "\\wmic.exe" and (ProcessCommandLine contains "shadowcopy" and ProcessCommandLine contains "create"))

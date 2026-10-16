@@ -1,0 +1,1 @@
+(event.code:20 AND (winlog.event_data.Type:("Command Line" OR Script))) AND (NOT process.executable.caseless:*BVTConsumer*)

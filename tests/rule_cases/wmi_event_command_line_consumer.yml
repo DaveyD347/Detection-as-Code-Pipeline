@@ -1,0 +1,12 @@
+rule: wmi_event_command_line_consumer
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 20, EventType: WmiConsumerEvent}
+match:
+  - name: OTRF Empire consumer
+    event: {Name: ' "Updater"', Type: Command Line, Destination: ' "C:\\windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NonI -W hidden -enc SQBGACgA"'}
+  - name: ActiveScript consumer
+    event: {Name: 'x', Type: Script, Destination: 'GetObject("winmgmts:").Get("Win32_Process").Create("calc")'}
+no_match:
+  - name: event filter (Sysmon 19) is not a consumer
+    event: {EventID: 19, EventType: WmiFilterEvent, Name: ' "Updater"', Query: 'SELECT * FROM __InstanceModificationEvent'}
+  - name: Dell BVT consumer present on OEM images
+    event: {Name: BVTConsumer, Type: Command Line, Destination: 'cscript KernCap.vbs BVTConsumer'}

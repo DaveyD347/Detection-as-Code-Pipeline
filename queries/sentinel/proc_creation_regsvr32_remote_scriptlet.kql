@@ -1,0 +1,4 @@
+// Regsvr32 Loading a Remote COM Scriptlet (Squiblydoo)
+// sigma: rules/windows/stealth/proc_creation_regsvr32_remote_scriptlet.yml | profile: microsoft_xdr
+DeviceProcessEvents
+| where (FolderPath endswith "\\regsvr32.exe" or ProcessVersionInfoOriginalFileName =~ "REGSVR32.EXE") and ProcessCommandLine contains "scrobj" and (ProcessCommandLine contains "-i:http" or ProcessCommandLine contains "/i:http" or ProcessCommandLine contains "–i:http" or ProcessCommandLine contains "—i:http" or ProcessCommandLine contains "―i:http" or ProcessCommandLine contains "-i:ftp" or ProcessCommandLine contains "/i:ftp" or ProcessCommandLine contains "–i:ftp" or ProcessCommandLine contains "—i:ftp" or ProcessCommandLine contains "―i:ftp" or ProcessCommandLine contains "-i:\\\\" or ProcessCommandLine contains "/i:\\\\" or ProcessCommandLine contains "–i:\\\\" or ProcessCommandLine contains "—i:\\\\" or ProcessCommandLine contains "―i:\\\\")

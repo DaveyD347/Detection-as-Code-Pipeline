@@ -1,0 +1,16 @@
+rule: file_event_lsass_dump_file_created
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 11}
+match:
+  - name: Task Manager "Create dump file" (OTRF)
+    event: {Image: 'C:\windows\system32\taskmgr.exe', TargetFilename: 'C:\Users\pgustavo\AppData\Local\Temp\lsass.DMP'}
+  - name: comsvcs output (OTRF)
+    event: {Image: 'C:\Windows\System32\rundll32.exe', TargetFilename: 'C:\Users\wardog\AppData\Local\Temp\lsass-comsvcs.dmp'}
+  - name: procdump default naming
+    event: {Image: 'C:\Tools\procdump64.exe', TargetFilename: 'C:\Tools\lsass_221016_101501.dmp'}
+no_match:
+  - name: Windows Error Reporting crash dump
+    event: {Image: 'C:\Windows\System32\WerFault.exe', TargetFilename: 'C:\Windows\System32\config\systemprofile\AppData\Local\CrashDumps\lsass.exe.640.dmp'}
+  - name: dump of a different process
+    event: {Image: 'C:\windows\system32\taskmgr.exe', TargetFilename: 'C:\Users\a\AppData\Local\Temp\chrome.DMP'}
+  - name: non-dump file mentioning lsass
+    event: {Image: 'C:\Windows\explorer.exe', TargetFilename: 'C:\Users\a\Documents\lsass-notes.txt'}

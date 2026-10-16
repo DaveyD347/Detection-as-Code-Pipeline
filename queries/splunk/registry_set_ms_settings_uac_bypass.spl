@@ -1,0 +1,2 @@
+```UAC Bypass via ms-settings Protocol Handler Hijack | sigma: rules/windows/privilege_escalation/registry_set_ms_settings_uac_bypass.yml```
+`dac_windows_registry_set` TargetObject IN ("*\\ms-settings\\shell\\open\\command\\(Default)", "*\\ms-settings\\shell\\open\\command\\DelegateExecute")

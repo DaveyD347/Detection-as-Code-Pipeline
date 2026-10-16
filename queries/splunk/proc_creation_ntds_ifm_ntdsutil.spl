@@ -1,0 +1,2 @@
+```NTDS.dit Export via ntdsutil IFM | sigma: rules/windows/credential_access/proc_creation_ntds_ifm_ntdsutil.yml```
+`dac_windows_process_creation` Image="*\\ntdsutil.exe" OR OriginalFileName="ntdsutil.exe" CommandLine="*ifm*" CommandLine="*create*"

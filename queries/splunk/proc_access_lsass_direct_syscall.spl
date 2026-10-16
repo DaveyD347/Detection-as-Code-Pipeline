@@ -1,0 +1,2 @@
+```LSASS Opened via Direct System Call | sigma: rules/windows/credential_access/proc_access_lsass_direct_syscall.yml```
+`dac_windows_process_access` TargetImage="*\\lsass.exe" CallTrace="*|*" NOT (CallTrace IN ("C:\\Windows\\System32\\ntdll.dll+*", "C:\\Windows\\SysWOW64\\ntdll.dll+*", "C:\\Windows\\System32\\win32u.dll+*"))

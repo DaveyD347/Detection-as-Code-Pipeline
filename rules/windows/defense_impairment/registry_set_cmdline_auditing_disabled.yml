@@ -1,0 +1,28 @@
+title: Process Command-Line Auditing Disabled
+id: c51f41fb-ba99-45cf-8a15-cb65f7e908db
+status: test
+description: |
+  Detects ProcessCreationIncludeCmdLine_Enabled being set to 0, which strips
+  the command line from Security event 4688. Many command-line detections
+  (including several in this repository) stop working on hosts that rely on
+  4688 rather than Sysmon.
+references:
+  - https://attack.mitre.org/techniques/T1685/001/
+  - https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/component-updates/command-line-process-auditing
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.defense-impairment
+  - attack.t1685.001
+  - attack.t1112
+logsource:
+  product: windows
+  category: registry_set
+detection:
+  selection:
+    TargetObject|endswith: '\Policies\System\Audit\ProcessCreationIncludeCmdLine_Enabled'
+    Details: DWORD (0x00000000)
+  condition: selection
+falsepositives:
+  - A GPO change that intentionally disables command-line auditing; confirm against change records.
+level: high

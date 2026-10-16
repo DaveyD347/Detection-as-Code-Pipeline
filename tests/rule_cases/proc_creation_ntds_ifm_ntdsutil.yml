@@ -1,0 +1,12 @@
+rule: proc_creation_ntds_ifm_ntdsutil
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 1, Image: 'C:\Windows\System32\ntdsutil.exe'}
+match:
+  - name: OTRF sample
+    event: {CommandLine: 'ntdsutil  "ac i ntds" "ifm" "create full C:\Windows\Temp\ntds_T1003" q q'}
+  - name: long-form syntax
+    event: {CommandLine: 'ntdsutil.exe "activate instance ntds" ifm "create sysvol full c:\ifm" quit quit'}
+no_match:
+  - name: metadata cleanup
+    event: {CommandLine: 'ntdsutil "metadata cleanup" "remove selected server DC02" q q'}
+  - name: snapshot listing
+    event: {CommandLine: 'ntdsutil snapshot "list all" quit quit'}

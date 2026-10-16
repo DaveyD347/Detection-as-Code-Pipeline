@@ -1,0 +1,1 @@
+(process.executable.caseless:*\\vssadmin.exe AND (process.command_line:*create* AND process.command_line:*shadow*)) OR (process.executable.caseless:*\\wmic.exe AND (process.command_line:*shadowcopy* AND process.command_line:*create*))

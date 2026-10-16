@@ -1,0 +1,4 @@
+// NTDS.dit Export via ntdsutil IFM
+// sigma: rules/windows/credential_access/proc_creation_ntds_ifm_ntdsutil.yml | profile: microsoft_xdr
+DeviceProcessEvents
+| where (FolderPath endswith "\\ntdsutil.exe" or ProcessVersionInfoOriginalFileName =~ "ntdsutil.exe") and (ProcessCommandLine contains "ifm" and ProcessCommandLine contains "create")

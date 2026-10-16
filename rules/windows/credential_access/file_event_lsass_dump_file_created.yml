@@ -1,0 +1,32 @@
+title: LSASS Dump File Written to Disk
+id: ada85c61-e567-4deb-9a49-73ede4a4d6cb
+status: test
+description: |
+  Detects creation of a minidump file whose name references LSASS. This is the
+  artifact left by Task Manager's "Create dump file", ProcDump, comsvcs
+  MiniDump, and most credential-dumping scripts, so it catches the outcome even
+  when the dumping method is new.
+references:
+  - https://attack.mitre.org/techniques/T1003/001/
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.credential-access
+  - attack.t1003.001
+logsource:
+  product: windows
+  category: file_event
+detection:
+  selection:
+    TargetFilename|contains: '\lsass'
+    TargetFilename|endswith:
+      - .dmp
+      - .dump
+      - .mdmp
+  filter_wer:
+    Image|endswith: '\WerFault.exe'
+    TargetFilename|contains: '\CrashDumps\'
+  condition: selection and not filter_wer
+falsepositives:
+  - Support engineers collecting LSASS dumps for Microsoft troubleshooting; these should be ticketed and rare.
+level: high

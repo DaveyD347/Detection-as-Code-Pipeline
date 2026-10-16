@@ -1,0 +1,8 @@
+rule: registry_set_cmdline_auditing_disabled
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 13, EventType: SetValue}
+match:
+  - name: OTRF sample
+    event: {Image: 'C:\Windows\system32\reg.exe', TargetObject: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit\ProcessCreationIncludeCmdLine_Enabled', Details: DWORD (0x00000000)}
+no_match:
+  - name: auditing enabled
+    event: {Image: 'C:\Windows\system32\svchost.exe', TargetObject: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit\ProcessCreationIncludeCmdLine_Enabled', Details: DWORD (0x00000001)}

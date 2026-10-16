@@ -1,0 +1,320 @@
+# Attack datasets replayed against every rule on every pull request.
+#
+# Each dataset is pinned to an immutable commit URL and a SHA-256. `expect`
+# lists rules that MUST fire on the dataset (with a minimum hit count). Any
+# rule that fires on a dataset without being listed here fails the build, so
+# every hit is either a reviewed true positive (add it to `expect`) or a
+# documented false positive (add it to `known_fp` with a reason, then fix it).
+#
+# The OTRF datasets were recorded on lab hosts with normal background
+# activity (Edge, Defender, Windows Update, logon noise), which makes them a
+# useful, if small, false-positive baseline as well as a true-positive one.
+
+sources:
+  otrf:
+    name: OTRF Security-Datasets
+    homepage: https://github.com/OTRF/Security-Datasets
+    license: MIT
+    base_url: https://raw.githubusercontent.com/OTRF/Security-Datasets/d9d40ef123d2c87d5d3df28c96bcab4f0faccc87/datasets/atomic/windows/
+datasets:
+- id: psh-lsass-memory-dump-comsvcs
+  source: otrf
+  path: credential_access/host/psh_lsass_memory_dump_comsvcs.zip
+  sha256: 0af9e920220d746432f0972be83ad057629695540aecd68c15869d190786e1ae
+  description: LSASS dumped with rundll32 comsvcs.dll MiniDump from PowerShell.
+  attack:
+  - T1003.001
+  expect:
+    proc_creation_lsass_dump_comsvcs_minidump: 1
+    file_event_lsass_dump_file_created: 1
+- id: empire-mimikatz-logonpasswords
+  source: otrf
+  path: credential_access/host/empire_mimikatz_logonpasswords.zip
+  sha256: bb4c057b62d781be5426e011872ba1a15070c07afbb24848a14458f4b22b06fb
+  description: Empire Invoke-Mimikatz sekurlsa::logonpasswords, running in-memory inside PowerShell.
+  attack:
+  - T1003.001
+  expect:
+    proc_access_lsass_unbacked_calltrace: 1
+- id: cmd-lsass-memory-dumpert-syscalls
+  source: otrf
+  path: credential_access/host/cmd_lsass_memory_dumpert_syscalls.zip
+  sha256: a28dbf708685a80edfb0b3d2a00c9bf196dd394fc1d61a933878841f4872a7ed
+  description: Outflank Dumpert dumping LSASS with direct system calls.
+  attack:
+  - T1003.001
+  - T1106
+  expect:
+    proc_access_lsass_direct_syscall: 1
+- id: rdp-interactive-taskmanager-lsass-dump
+  source: otrf
+  path: credential_access/host/rdp_interactive_taskmanager_lsass_dump.zip
+  sha256: a7761e64c891162e949afebf367084a6dddd2f3dac7b91bce870fcf9f6206fba
+  description: LSASS dumped interactively with Task Manager over RDP.
+  attack:
+  - T1003.001
+  expect:
+    file_event_lsass_dump_file_created: 1
+- id: cmd-dumping-ntds-dit-file-ntdsutil
+  source: otrf
+  path: credential_access/host/cmd_dumping_ntds_dit_file_ntdsutil.zip
+  sha256: 4633882ab1e9eadd156b29a89a5a6e24b680ead1b11ee259fdbe0d19ddbf77cf
+  description: ntds.dit exported with ntdsutil IFM.
+  attack:
+  - T1003.003
+  expect:
+    proc_creation_ntds_ifm_ntdsutil: 1
+- id: cmd-dumping-ntds-dit-file-volume-shadow-copy
+  source: otrf
+  path: credential_access/host/cmd_dumping_ntds_dit_file_volume_shadow_copy.zip
+  sha256: aed847c1571ec3ef906f2b844d343bb3897eec4cf856b8f0939e934646348378
+  description: Shadow copy created with vssadmin, SYSTEM hive saved with reg.exe.
+  attack:
+  - T1003.003
+  expect:
+    proc_creation_shadow_copy_created: 1
+    proc_creation_reg_save_credential_hives: 1
+- id: cmd-sam-copy-esentutl
+  source: otrf
+  path: credential_access/host/cmd_sam_copy_esentutl.zip
+  sha256: f7a71135778aeff605abcb88a14a076f0814ab5cb136d07103bdf13c45551b64
+  description: SAM hive copied through VSS with esentutl /y /vss.
+  attack:
+  - T1003.002
+  expect:
+    proc_creation_esentutl_copy_credential_store: 1
+- id: empire-shell-reg-dump-sam
+  source: otrf
+  path: credential_access/host/empire_shell_reg_dump_sam.zip
+  sha256: 5a8ee19860f35da6d4bcadf15178a085b469086c461d3d873d0f4adedba41f0a
+  description: SAM hive saved with reg.exe from an Empire shell.
+  attack:
+  - T1003.002
+  expect:
+    proc_creation_reg_save_credential_hives: 1
+- id: empire-dcsync-dcerpc-drsuapi-dsgetncchanges
+  source: otrf
+  path: credential_access/host/empire_dcsync_dcerpc_drsuapi_DsGetNCChanges.zip
+  sha256: fe1fcc96c0ff0cbae8fd4ffaadf85f51e28475441774f6fda3d963d4e2962800
+  description: Empire DCSync (DRSUAPI DsGetNCChanges) from a user account.
+  attack:
+  - T1003.006
+  expect:
+    win_security_dcsync_replication_by_user: 1
+- id: mimikatz-cve-2020-1472-unauthenticated-netrserverauthenticate2
+  source: otrf
+  path: lateral_movement/host/mimikatz_CVE-2020-1472_Unauthenticated_NetrServerAuthenticate2.zip
+  sha256: 03b8cefdd0c39bcbb9c4939af6777c8617dcab0a717e04b53a2fe112c3a2eee0
+  description: Zerologon (CVE-2020-1472) exploited with mimikatz against a DC.
+  attack:
+  - T1210
+  expect:
+    win_security_zerologon_anonymous_machine_password_reset: 1
+- id: cmd-mshta-vbscript-execute-psh
+  source: otrf
+  path: defense_evasion/host/cmd_mshta_vbscript_execute_psh.zip
+  sha256: f5f700bc986bbe73edcc209754b28a3e0ad38c56877f7fc5ed6fd04bc036d9f4
+  description: mshta vbscript:Execute launching PowerShell.
+  attack:
+  - T1218.005
+  expect:
+    proc_creation_mshta_inline_script: 1
+- id: cmd-mshta-javascript-getobject-sct
+  source: otrf
+  path: defense_evasion/host/cmd_mshta_javascript_getobject_sct.zip
+  sha256: 976a705690dcc296ba132b9cd594c004265911e9e40d402c879dd06eddbbc057
+  description: 'mshta javascript: GetObject loading a remote scriptlet.'
+  attack:
+  - T1218.005
+  expect:
+    proc_creation_mshta_inline_script: 1
+- id: empire-launcher-sct-regsvr32
+  source: otrf
+  path: defense_evasion/host/empire_launcher_sct_regsvr32.zip
+  sha256: abeb5c52c75286386e5eb999d7423d738a624191f4a95fb62694b471a10b2dab
+  description: Empire launcher delivered via regsvr32 /i:http scrobj.dll.
+  attack:
+  - T1218.010
+  - T1059.001
+  expect:
+    proc_creation_regsvr32_remote_scriptlet: 1
+    proc_creation_powershell_hidden_encoded_launcher: 1
+- id: psh-cmstp-execution-bypassuac
+  source: otrf
+  path: defense_evasion/host/psh_cmstp_execution_bypassuac.zip
+  sha256: a653c698e8f779261ba0b3ac92bd604d4abe3a510cda8ab1f5ccdd421d013d4c
+  description: CMSTP INF install used for UAC bypass.
+  attack:
+  - T1218.003
+  - T1548.002
+  expect:
+    proc_creation_cmstp_silent_inf_install: 1
+- id: cmd-bitsadmin-download-psh-script
+  source: otrf
+  path: defense_evasion/host/cmd_bitsadmin_download_psh_script.zip
+  sha256: 8fb7bc9f3d82f672dc39a55e50006137aa540c4a9860acdcc5d08a4fd609b594
+  description: bitsadmin /transfer downloading a script.
+  attack:
+  - T1197
+  - T1105
+  expect:
+    proc_creation_bitsadmin_transfer: 1
+- id: cmd-netsh-fw-mod-open-ports
+  source: otrf
+  path: defense_evasion/host/cmd_netsh_fw_mod_open_ports.zip
+  sha256: 3d887b38c6a92892f950029f40114fe4598a798ad20453671dbe3d111b9ce4a2
+  description: netsh advfirewall rule opening an inbound port.
+  attack:
+  - T1686.003
+  expect:
+    proc_creation_netsh_firewall_allow_rule: 1
+- id: psh-python-webserver
+  source: otrf
+  path: execution/host/psh_python_webserver.zip
+  sha256: 58a62e35ee7a78e88cfca86e628e988a7192ec7fb24013b9d3b86766b25c8a17
+  description: Python http.server exposed with netsh firewall allow rules.
+  attack:
+  - T1686.003
+  expect:
+    proc_creation_netsh_firewall_allow_rule: 1
+- id: reg-stop-event-logging-controlset-minint-key
+  source: otrf
+  path: defense_evasion/host/reg_stop_event_logging_controlset_minint_key.zip
+  sha256: e741989173a43216843507b25f5e6dbb5993419208801526ea21b61ed22af259
+  description: MiniNt key created to stop event logging.
+  attack:
+  - T1685.001
+  expect:
+    registry_add_minint_key: 1
+- id: reg-disable-eventlog-service-startuptype-modification-via-registry
+  source: otrf
+  path: defense_evasion/host/reg_disable_eventlog_service_startuptype_modification_via_registry.zip
+  sha256: d79d5a13fbb1e7957d748955a1be5c68294e58d322b76e41393d6987fe769656
+  description: EventLog service disabled through its registry Start value.
+  attack:
+  - T1685.001
+  expect:
+    registry_set_eventlog_service_disabled: 1
+- id: reg-cmd-process-commandline-logging-disabled
+  source: otrf
+  path: defense_evasion/host/reg_cmd_process_commandline_logging_disabled.zip
+  sha256: 59ba811e1d268916b8ef0b65d0cd8ae3ffde0bb59a680ae72d8740eb36cd9b67
+  description: 4688 command-line auditing disabled with reg add.
+  attack:
+  - T1685.001
+  expect:
+    registry_set_cmdline_auditing_disabled: 1
+- id: cmd-wevtutil-modify-security-eventlog-path
+  source: otrf
+  path: defense_evasion/host/cmd_wevtutil_modify_security_eventlog_path.zip
+  sha256: 2ea34cf2d3526e30f9fe004fc4f53f8a04d8e6885e697d77c44102567279ac67
+  description: Security log file path redirected with wevtutil set-log.
+  attack:
+  - T1685.001
+  expect:
+    proc_creation_wevtutil_log_tampering: 1
+- id: empire-uac-shellapi-fodhelper
+  source: otrf
+  path: privilege_escalation/host/empire_uac_shellapi_fodhelper.zip
+  sha256: b8cc7aae826f5e4aea3ea47b2b6db69b062c39201de8de9621d5081622d3c504
+  description: Empire fodhelper UAC bypass via ms-settings handler, which relaunches the stager elevated.
+  attack:
+  - T1548.002
+  - T1059.001
+  expect:
+    registry_set_ms_settings_uac_bypass: 1
+    proc_creation_powershell_hidden_encoded_launcher: 1
+- id: empire-persistence-registry-modification-run-keys-standard-user
+  source: otrf
+  path: persistence/host/empire_persistence_registry_modification_run_keys_standard_user.zip
+  sha256: 2965f791bcaf5e6ccfc4059985e81fd7e67ec87f17855b6c383edd1b03a19c36
+  description: Empire HKCU Run key persistence; the stager also runs once in the capture.
+  attack:
+  - T1547.001
+  - T1059.001
+  expect:
+    registry_set_run_key_script_interpreter: 1
+    proc_creation_powershell_hidden_encoded_launcher: 1
+- id: empire-schtasks-creation-standard-user
+  source: otrf
+  path: persistence/host/empire_schtasks_creation_standard_user.zip
+  sha256: b073a18420c90394cd2b6ad7589c78d90eba32dc155ed04b12ac824a8fc591b4
+  description: Empire scheduled task persistence via schtasks /create.
+  attack:
+  - T1053.005
+  expect:
+    proc_creation_schtasks_create_interpreter_action: 1
+- id: schtask-create
+  source: otrf
+  path: lateral_movement/host/schtask_create.zip
+  sha256: 74394c64b660d5b229936d00ea8b3ceb900126cd9e261f58fa2be766579ec5de
+  description: Remote scheduled task created under \Microsoft\Windows\.
+  attack:
+  - T1053.005
+  expect:
+    proc_creation_schtasks_create_interpreter_action: 1
+    win_security_scheduled_task_masquerading_microsoft_path: 1
+- id: empire-wmi-local-event-subscriptions-elevated-user
+  source: otrf
+  path: persistence/host/empire_wmi_local_event_subscriptions_elevated_user.zip
+  sha256: a507f2edd768b592e6b3157e974fd0468965eee00407387d88356ecb8fd20fea
+  description: Empire WMI permanent event subscription. The CommandLineEventConsumer later fires and runs the stager as a
+    child of WmiPrvSE.
+  attack:
+  - T1546.003
+  - T1047
+  - T1059.001
+  expect:
+    wmi_event_command_line_consumer: 1
+    proc_creation_wmiprvse_spawns_shell: 1
+    proc_creation_powershell_hidden_encoded_launcher: 1
+- id: empire-wmi-dcerpc-wmi-iwbemservices-execmethod
+  source: otrf
+  path: lateral_movement/host/empire_wmi_dcerpc_wmi_IWbemServices_ExecMethod.zip
+  sha256: 96f1dbd9c5b077c8951b6e1f43b7fe01a2620c649889262481f15139a1746d88
+  description: Empire invoke_wmi lateral movement (Win32_Process.Create).
+  attack:
+  - T1047
+  - T1059.001
+  expect:
+    proc_creation_wmiprvse_spawns_shell: 1
+    proc_creation_powershell_hidden_encoded_launcher: 1
+- id: empire-psexec-dcerpc-tcp-svcctl
+  source: otrf
+  path: lateral_movement/host/empire_psexec_dcerpc_tcp_svcctl.zip
+  sha256: 8f40e7fc86bbbf31ebd50b3ba537cf0f4378392ae3e74de84bee00aeb0de1fa5
+  description: Empire PsExec-style lateral movement via a remote service.
+  attack:
+  - T1569.002
+  - T1543.003
+  - T1059.001
+  expect:
+    proc_creation_services_spawns_shell: 1
+    win_system_service_install_shell_imagepath: 1
+    proc_creation_powershell_hidden_encoded_launcher: 1
+- id: empire-shell-net-localgroup-administrators
+  source: otrf
+  path: discovery/host/empire_shell_net_localgroup_administrators.zip
+  sha256: 7331af9e09f7cb457e7b5a44494e4b2612a810ae50254c6a2d996914d66fe663
+  description: net localgroup Administrators from an Empire shell.
+  attack:
+  - T1069.001
+  expect:
+    proc_creation_net_local_account_enumeration: 1
+- id: empire-shell-net-local-users
+  source: otrf
+  path: discovery/host/empire_shell_net_local_users.zip
+  sha256: a2cf8016ad2a134f61aec5133bd0aa54f662aa4165f60b30f4204fd31787576c
+  description: net user from an Empire shell.
+  attack:
+  - T1087.001
+  expect:
+    proc_creation_net_local_account_enumeration: 1
+- id: covenant-psremoting-command
+  source: otrf
+  path: lateral_movement/host/covenant_psremoting_command.zip
+  sha256: 4a2e0f9688c87a90b17b608ff38fb2230ceb7305ea0368703dcfe53269e3f096
+  description: 'Covenant PowerShell remoting. No rule targets it yet: kept as a noise baseline.'
+  attack:
+  - T1021.006
+  expect: {}

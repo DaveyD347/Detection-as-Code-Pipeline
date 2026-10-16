@@ -1,0 +1,33 @@
+title: Regsvr32 Loading a Remote COM Scriptlet (Squiblydoo)
+id: 3be4dc96-be94-4260-adf1-d30fe33afa78
+status: test
+description: |
+  Detects regsvr32 invoking scrobj.dll with /i: pointing at a URL. This is the
+  "Squiblydoo" technique: the signed binary downloads and executes a .sct
+  scriptlet, bypassing application allow-listing.
+references:
+  - https://attack.mitre.org/techniques/T1218/010/
+  - https://lolbas-project.github.io/lolbas/Binaries/Regsvr32/
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.stealth
+  - attack.t1218.010
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_img:
+    - Image|endswith: '\regsvr32.exe'
+    - OriginalFileName: REGSVR32.EXE
+  selection_scriptlet:
+    CommandLine|contains: scrobj
+  selection_remote:
+    CommandLine|contains|windash:
+      - '-i:http'
+      - '-i:ftp'
+      - '-i:\\\\'
+  condition: all of selection_*
+falsepositives:
+  - None expected.
+level: high

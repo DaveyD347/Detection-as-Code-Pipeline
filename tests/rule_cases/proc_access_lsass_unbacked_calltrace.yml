@@ -1,0 +1,14 @@
+rule: proc_access_lsass_unbacked_calltrace
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 10, TargetImage: 'C:\Windows\system32\lsass.exe', GrantedAccess: '0x1010'}
+match:
+  - name: OTRF Invoke-Mimikatz sample
+    event: {SourceImage: 'C:\windows\System32\WindowsPowerShell\v1.0\powershell.exe', CallTrace: 'C:\windows\SYSTEM32\ntdll.dll+9c534|C:\windows\System32\KERNELBASE.dll+2726e|UNKNOWN(000002EE319439BF)'}
+  - name: unbacked caller followed by more frames
+    event: {SourceImage: 'C:\Windows\System32\notepad.exe', CallTrace: 'C:\Windows\SYSTEM32\ntdll.dll+a0d84|C:\Windows\System32\KERNELBASE.dll+5f3c1|UNKNOWN(00000000041A2B3C)|C:\Windows\System32\KERNEL32.DLL+17614'}
+no_match:
+  - name: .NET app, UNKNOWN only deep in the managed stack (Azure guest agent in OTRF)
+    event: {SourceImage: 'C:\WindowsAzure\GuestAgent\CollectGuestLogs.exe', CallTrace: 'C:\windows\SYSTEM32\ntdll.dll+9c534|C:\windows\System32\KERNELBASE.dll+271ee|C:\windows\assembly\NativeImages_v4.0.30319_64\System\e5ca\System.ni.dll+381f60|UNKNOWN(00007FF9AD23913B)'}
+  - name: backed caller
+    event: {SourceImage: 'C:\Windows\System32\svchost.exe', CallTrace: 'C:\windows\SYSTEM32\ntdll.dll+9c534|C:\windows\System32\KERNELBASE.dll+2726e|c:\windows\system32\lsm.dll+10daa'}
+  - name: unbacked caller but target is not LSASS
+    event: {TargetImage: 'C:\Windows\explorer.exe', SourceImage: 'C:\x.exe', CallTrace: 'C:\windows\SYSTEM32\ntdll.dll+9c534|C:\windows\System32\KERNELBASE.dll+2726e|UNKNOWN(000002EE319439BF)'}

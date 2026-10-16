@@ -1,0 +1,4 @@
+// DCSync - Directory Replication Requested by a User Account
+// sigma: rules/windows/credential_access/win_security_dcsync_replication_by_user.yml | profile: azure_monitor_securityevent
+SecurityEvent
+| where (EventID == 4662 and AccessMask =~ "0x100" and (Properties contains "1131f6aa-9c07-11d1-f79f-00c04fc2dcd2" or Properties contains "1131f6ad-9c07-11d1-f79f-00c04fc2dcd2" or Properties contains "89e95b76-444d-4c62-991a-0facbeda640c")) and (not((SubjectUserName endswith "$" or SubjectUserName startswith "MSOL_")))

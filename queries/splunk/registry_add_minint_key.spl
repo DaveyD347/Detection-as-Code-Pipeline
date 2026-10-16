@@ -1,0 +1,2 @@
+```MiniNt Registry Key Created to Silence Event Logging | sigma: rules/windows/defense_impairment/registry_add_minint_key.yml```
+`dac_windows_registry_add` TargetObject="*\\Control\\MiniNt"

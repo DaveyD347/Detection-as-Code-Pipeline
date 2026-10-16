@@ -1,0 +1,4 @@
+// MiniNt Registry Key Created to Silence Event Logging
+// sigma: rules/windows/defense_impairment/registry_add_minint_key.yml | profile: microsoft_xdr
+DeviceRegistryEvents
+| where RegistryKey endswith "\\Control\\MiniNt"

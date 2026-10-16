@@ -1,0 +1,10 @@
+rule: registry_set_eventlog_service_disabled
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 13, EventType: SetValue}
+match:
+  - name: OTRF sample
+    event: {Image: 'C:\Users\IT01-Pedro\Downloads\payload.exe', TargetObject: 'HKLM\System\CurrentControlSet\Services\EventLog\Start', Details: DWORD (0x00000004)}
+no_match:
+  - name: set back to automatic
+    event: {Image: 'C:\Windows\regedit.exe', TargetObject: 'HKLM\System\CurrentControlSet\Services\EventLog\Start', Details: DWORD (0x00000002)}
+  - name: a different service disabled
+    event: {Image: 'C:\Windows\regedit.exe', TargetObject: 'HKLM\System\CurrentControlSet\Services\Fax\Start', Details: DWORD (0x00000004)}

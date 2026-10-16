@@ -1,0 +1,2 @@
+```Process Command-Line Auditing Disabled | sigma: rules/windows/defense_impairment/registry_set_cmdline_auditing_disabled.yml```
+`dac_windows_registry_set` TargetObject="*\\Policies\\System\\Audit\\ProcessCreationIncludeCmdLine_Enabled" Details="DWORD (0x00000000)"

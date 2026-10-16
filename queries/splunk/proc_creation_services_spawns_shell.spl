@@ -1,0 +1,2 @@
+```Service Control Manager Spawning a Shell Directly | sigma: rules/windows/execution/proc_creation_services_spawns_shell.yml```
+`dac_windows_process_creation` ParentImage="*\\services.exe" Image IN ("*\\cmd.exe", "*\\powershell.exe", "*\\pwsh.exe", "*\\mshta.exe", "*\\rundll32.exe")

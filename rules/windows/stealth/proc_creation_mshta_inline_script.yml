@@ -1,0 +1,32 @@
+title: Mshta Executing Inline VBScript or JavaScript
+id: 6eb0b9bd-cddb-48aa-8b40-2c1ed922ea3f
+status: test
+description: |
+  Detects mshta.exe given a vbscript: or javascript: protocol handler on the
+  command line. This runs script directly from the command line, with no .hta
+  file on disk, and is a common way to proxy a PowerShell or COM scriptlet
+  payload through a signed Microsoft binary.
+references:
+  - https://attack.mitre.org/techniques/T1218/005/
+  - https://lolbas-project.github.io/lolbas/Binaries/Mshta/
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.stealth
+  - attack.t1218.005
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_img:
+    - Image|endswith: '\mshta.exe'
+    - OriginalFileName: MSHTA.EXE
+  selection_inline:
+    CommandLine|contains:
+      - 'vbscript:'
+      - 'javascript:'
+      - 'about:'
+  condition: all of selection_*
+falsepositives:
+  - Very old line-of-business HTA launchers; inventory and exclude by full command line.
+level: high

@@ -1,0 +1,16 @@
+rule: proc_creation_wevtutil_log_tampering
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 1, Image: 'C:\Windows\System32\wevtutil.exe'}
+match:
+  - name: OTRF Security log redirected
+    event: {CommandLine: 'wevtutil  set-log Security /logfilename:"C:\Windows\System32\winevt\Not-Important-Log.evtx"'}
+  - name: log cleared
+    event: {CommandLine: 'wevtutil.exe cl Security'}
+  - name: log disabled with short flags
+    event: {CommandLine: 'wevtutil sl Microsoft-Windows-Sysmon/Operational /e:false'}
+no_match:
+  - name: reading log configuration (OTRF, same session)
+    event: {CommandLine: 'wevtutil  get-log Security'}
+  - name: querying events
+    event: {CommandLine: 'wevtutil qe Security /c:5 /rd:true /f:text'}
+  - name: resizing a log
+    event: {CommandLine: 'wevtutil sl Application /ms:209715200'}

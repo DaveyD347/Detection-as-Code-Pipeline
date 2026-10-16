@@ -1,0 +1,1 @@
+(process.executable.caseless:*\\mshta.exe OR process.pe.original_file_name:MSHTA.EXE) AND (process.command_line:(*vbscript\:* OR *javascript\:* OR *about\:*))

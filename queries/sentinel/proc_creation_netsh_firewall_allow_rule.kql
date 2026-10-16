@@ -1,0 +1,4 @@
+// Inbound Firewall Allow Rule Added via netsh
+// sigma: rules/windows/defense_impairment/proc_creation_netsh_firewall_allow_rule.yml | profile: microsoft_xdr
+DeviceProcessEvents
+| where (FolderPath endswith "\\netsh.exe" or ProcessVersionInfoOriginalFileName =~ "netsh.exe") and (ProcessCommandLine contains "firewall" and ProcessCommandLine contains "add") and (ProcessCommandLine contains "action=allow" or ProcessCommandLine contains "mode=enable") and (ProcessCommandLine contains "dir=in" or (ProcessCommandLine contains "portopening" and ProcessCommandLine contains "netsh firewall"))

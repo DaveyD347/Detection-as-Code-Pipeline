@@ -1,0 +1,26 @@
+title: Event Log Service Start Type Set to Disabled
+id: cf7f35c3-01dc-4e64-ad48-7efb03934065
+status: test
+description: |
+  Detects the Windows Event Log service being set to Disabled (Start = 4)
+  through the registry. Done directly in the registry, it avoids the
+  sc.exe / Set-Service command lines most detections watch for.
+references:
+  - https://attack.mitre.org/techniques/T1685/001/
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.defense-impairment
+  - attack.t1685.001
+  - attack.t1112
+logsource:
+  product: windows
+  category: registry_set
+detection:
+  selection:
+    TargetObject|endswith: '\Services\EventLog\Start'
+    Details: DWORD (0x00000004)
+  condition: selection
+falsepositives:
+  - None.
+level: high

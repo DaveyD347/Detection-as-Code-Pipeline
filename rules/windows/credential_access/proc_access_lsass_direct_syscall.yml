@@ -1,0 +1,37 @@
+title: LSASS Opened via Direct System Call
+id: d6a5eb01-5d1f-4212-b90e-a5459f225b7e
+status: test
+description: |
+  Every legitimate handle request reaches the kernel through ntdll.dll, so the
+  first frame of a Sysmon CallTrace is an ntdll (or win32u) address. Tools
+  such as Dumpert, NanoDump and SysWhispers-based loaders issue the syscall
+  instruction from their own code to step around user-mode EDR hooks; Sysmon
+  then records the tool's own module as the first frame. That evasion is
+  itself the detection.
+references:
+  - https://attack.mitre.org/techniques/T1003/001/
+  - https://attack.mitre.org/techniques/T1106/
+  - https://github.com/outflanknl/Dumpert
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.credential-access
+  - attack.t1003.001
+  - attack.execution
+  - attack.t1106
+logsource:
+  product: windows
+  category: process_access
+detection:
+  selection:
+    TargetImage|endswith: '\lsass.exe'
+    CallTrace|contains: '|'
+  filter_ntdll:
+    CallTrace|startswith:
+      - 'C:\Windows\System32\ntdll.dll+'
+      - 'C:\Windows\SysWOW64\ntdll.dll+'
+      - 'C:\Windows\System32\win32u.dll+'
+  condition: selection and not filter_ntdll
+falsepositives:
+  - Security products that deliberately use direct syscalls; identify them during baselining and exclude by SourceImage.
+level: high

@@ -1,0 +1,14 @@
+rule: proc_creation_net_local_account_enumeration
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 1}
+match:
+  - name: OTRF net localgroup Administrators
+    event: {Image: 'C:\Windows\System32\net.exe', CommandLine: '"C:\windows\system32\net.exe" localgroup Administrators'}
+  - name: OTRF net1 user
+    event: {Image: 'C:\Windows\System32\net1.exe', CommandLine: 'C:\windows\system32\net1 user'}
+no_match:
+  - name: domain group query is a different behaviour
+    event: {Image: 'C:\Windows\System32\net.exe', CommandLine: 'net group "Domain Admins" /domain'}
+  - name: creating a user is not discovery
+    event: {Image: 'C:\Windows\System32\net.exe', CommandLine: 'net user backdoor P@ssw0rd /add'}
+  - name: net use
+    event: {Image: 'C:\Windows\System32\net.exe', CommandLine: 'net use Z: \\fs01\share'}

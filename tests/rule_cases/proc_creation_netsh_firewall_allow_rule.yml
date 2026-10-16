@@ -1,0 +1,16 @@
+rule: proc_creation_netsh_firewall_allow_rule
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 1, Image: 'C:\Windows\System32\netsh.exe'}
+match:
+  - name: OTRF port opening
+    event: {CommandLine: 'netsh  advfirewall firewall add rule name="atomic testing" action=allow dir=in protocol=TCP localport=450'}
+  - name: OTRF program rule for a python web server
+    event: {CommandLine: '"C:\windows\system32\netsh.exe" advfirewall firewall add rule name=python.exe dir=in action=allow program=C:\python39\python.exe enable=yes'}
+  - name: legacy netsh firewall syntax
+    event: {CommandLine: 'netsh firewall add portopening TCP 4444 backdoor mode=enable'}
+no_match:
+  - name: deleting the rule
+    event: {CommandLine: 'netsh  advfirewall firewall delete rule name="atomic testing" protocol=TCP localport=450'}
+  - name: outbound block rule
+    event: {CommandLine: 'netsh advfirewall firewall add rule name=blk dir=out action=block remoteip=203.0.113.9'}
+  - name: showing rules
+    event: {CommandLine: 'netsh advfirewall firewall show rule name=all'}

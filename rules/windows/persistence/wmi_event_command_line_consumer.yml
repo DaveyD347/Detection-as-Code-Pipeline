@@ -1,0 +1,31 @@
+title: WMI Event Consumer Created to Run a Command or Script
+id: 32aaf82b-315b-488d-96ce-0ef2f2b2dde6
+status: test
+description: |
+  Detects a permanent WMI event consumer of type CommandLine or ActiveScript
+  being registered (Sysmon 20). Paired with a filter and binding, this gives
+  fileless persistence that runs as SYSTEM inside WmiPrvSE and survives
+  reboots.
+references:
+  - https://attack.mitre.org/techniques/T1546/003/
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.persistence
+  - attack.privilege-escalation
+  - attack.t1546.003
+logsource:
+  product: windows
+  category: wmi_event
+detection:
+  selection:
+    EventID: 20
+    Type:
+      - Command Line
+      - Script
+  filter_dell_bvt:
+    Destination|contains: 'BVTConsumer'
+  condition: selection and not 1 of filter_*
+falsepositives:
+  - Dell, HP and Lenovo management agents; inventory known consumers and exclude by Name.
+level: high

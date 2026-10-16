@@ -1,0 +1,2 @@
+```Service Installed With a Shell Command as Its Binary Path | sigma: rules/windows/execution/win_system_service_install_shell_imagepath.yml```
+`dac_windows_system` source="WinEventLog:System" (Provider_Name="Service Control Manager" EventCode=7045) OR (SourceName="Service Control Manager" EventCode=7045) ImagePath IN ("*%COMSPEC%*", "*cmd.exe /c*", "*cmd /c*", "*powershell*", "*pwsh*", "*mshta*", "* -enc *", "* -e *", "* -nop *")

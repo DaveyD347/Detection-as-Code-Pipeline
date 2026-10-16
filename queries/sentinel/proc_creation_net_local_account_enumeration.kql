@@ -1,0 +1,4 @@
+// Local Users or Administrators Enumerated via net.exe
+// sigma: rules/windows/discovery/proc_creation_net_local_account_enumeration.yml | profile: microsoft_xdr
+DeviceProcessEvents
+| where ((FolderPath endswith "\\net.exe" or FolderPath endswith "\\net1.exe") or (ProcessVersionInfoOriginalFileName in~ ("net.exe", "net1.exe"))) and ((ProcessCommandLine endswith " user" or ProcessCommandLine endswith " users") or ProcessCommandLine contains " localgroup") and (not(ProcessCommandLine contains " /domain"))

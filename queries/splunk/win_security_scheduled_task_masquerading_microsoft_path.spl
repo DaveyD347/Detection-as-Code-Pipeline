@@ -1,0 +1,2 @@
+```Scheduled Task Registered Under \Microsoft\Windows\ by a User | sigma: rules/windows/persistence/win_security_scheduled_task_masquerading_microsoft_path.yml```
+`dac_windows_security` source="WinEventLog:Security" EventCode=4698 TaskName="\\Microsoft\\Windows\\*" NOT (SubjectUserName="*$" OR SubjectUserSid="S-1-5-18")

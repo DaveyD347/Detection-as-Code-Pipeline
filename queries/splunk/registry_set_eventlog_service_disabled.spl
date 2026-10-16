@@ -1,0 +1,2 @@
+```Event Log Service Start Type Set to Disabled | sigma: rules/windows/defense_impairment/registry_set_eventlog_service_disabled.yml```
+`dac_windows_registry_set` TargetObject="*\\Services\\EventLog\\Start" Details="DWORD (0x00000004)"

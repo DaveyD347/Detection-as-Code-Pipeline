@@ -1,0 +1,1 @@
+(file.path:*\\lsass* AND (file.path:(*.dmp OR *.dump OR *.mdmp))) AND (NOT (process.executable.caseless:*\\WerFault.exe AND file.path:*\\CrashDumps\\*))

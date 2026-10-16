@@ -1,0 +1,2 @@
+```Local Users or Administrators Enumerated via net.exe | sigma: rules/windows/discovery/proc_creation_net_local_account_enumeration.yml```
+`dac_windows_process_creation` Image IN ("*\\net.exe", "*\\net1.exe") OR OriginalFileName IN ("net.exe", "net1.exe") CommandLine IN ("* user", "* users") OR CommandLine="* localgroup*" NOT CommandLine="* /domain*"

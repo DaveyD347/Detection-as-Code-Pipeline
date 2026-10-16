@@ -1,0 +1,43 @@
+title: Service Installed With a Shell Command as Its Binary Path
+id: b21963a3-903b-40b3-be28-11156347b47d
+status: test
+description: |
+  Detects a new service (System 7045) whose ImagePath launches cmd, PowerShell
+  or another interpreter, or uses an encoded command. This is the install-time
+  half of PsExec-style execution and fires even if the service fails to start
+  or the process creation event is missed.
+references:
+  - https://attack.mitre.org/techniques/T1543/003/
+  - https://attack.mitre.org/techniques/T1569/002/
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.persistence
+  - attack.t1543.003
+  - attack.execution
+  - attack.t1569.002
+logsource:
+  product: windows
+  service: system
+detection:
+  selection_event:
+    Provider_Name: Service Control Manager
+    EventID: 7045
+  selection_event_legacy:
+    SourceName: Service Control Manager
+    EventID: 7045
+  selection_path:
+    ImagePath|contains:
+      - '%COMSPEC%'
+      - 'cmd.exe /c'
+      - 'cmd /c'
+      - 'powershell'
+      - 'pwsh'
+      - 'mshta'
+      - ' -enc '
+      - ' -e '
+      - ' -nop '
+  condition: 1 of selection_event* and selection_path
+falsepositives:
+  - Deployment tools that install a temporary service with a script wrapper.
+level: high

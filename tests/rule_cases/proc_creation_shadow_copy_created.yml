@@ -1,0 +1,12 @@
+rule: proc_creation_shadow_copy_created
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 1}
+match:
+  - name: OTRF vssadmin sample
+    event: {Image: 'C:\Windows\System32\vssadmin.exe', CommandLine: 'vssadmin.exe  create shadow /for=C:'}
+  - name: wmic variant
+    event: {Image: 'C:\Windows\System32\wbem\WMIC.exe', CommandLine: 'wmic shadowcopy call create Volume=C:\'}
+no_match:
+  - name: listing shadows
+    event: {Image: 'C:\Windows\System32\vssadmin.exe', CommandLine: 'vssadmin list shadows'}
+  - name: deleting shadows is a different detection (ransomware)
+    event: {Image: 'C:\Windows\System32\vssadmin.exe', CommandLine: 'vssadmin delete shadows /all /quiet'}

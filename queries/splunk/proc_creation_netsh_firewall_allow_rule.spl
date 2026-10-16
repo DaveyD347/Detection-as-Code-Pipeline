@@ -1,0 +1,2 @@
+```Inbound Firewall Allow Rule Added via netsh | sigma: rules/windows/defense_impairment/proc_creation_netsh_firewall_allow_rule.yml```
+`dac_windows_process_creation` Image="*\\netsh.exe" OR OriginalFileName="netsh.exe" CommandLine="*firewall*" CommandLine="*add*" CommandLine IN ("*action=allow*", "*mode=enable*") CommandLine="*dir=in*" OR (CommandLine="*portopening*" CommandLine="*netsh firewall*")
