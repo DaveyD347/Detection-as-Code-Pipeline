@@ -1,0 +1,101 @@
+name: detection-pipeline
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Weekly: catch upstream drift (dataset URLs, backend behaviour) even when nobody commits.
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  DAC_REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+
+jobs:
+  validate:
+    name: Lint, unit tests, conversion
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.lock
+      - name: Install
+        run: pip install -c requirements.lock -e '.[dev]'
+      - name: Code style
+        run: |
+          ruff check src tests
+          ruff format --check src tests
+      - name: Rule lint (metadata, ATT&CK v-pinned tags, layout, portability)
+        run: dac lint
+      - name: Unit tests (engine semantics + per-rule true/false positive cases)
+        run: pytest
+      - name: Generated SIEM queries are up to date
+        run: dac convert --check
+
+  replay:
+    name: Replay against attack datasets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.lock
+      - name: Install
+        run: pip install -c requirements.lock -e .
+      - name: Restore dataset cache
+        # Keyed on the manifest: entries are content-addressed by SHA-256 and
+        # re-verified on every read, so a stale or poisoned cache cannot pass.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/datasets
+          key: datasets-${{ hashFiles('datasets/manifest.yml') }}
+          restore-keys: datasets-
+      - name: Replay
+        run: dac replay --out build
+      - name: Build coverage site
+        if: always()
+        run: dac coverage --replay build/replay.json --out build/site
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: replay-report
+          path: build/
+          retention-days: 14
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: build/site
+
+  publish:
+    name: Publish coverage heatmap
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: [validate, replay]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
