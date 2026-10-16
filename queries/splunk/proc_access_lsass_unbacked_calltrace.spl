@@ -1,0 +1,3 @@
+```LSASS Accessed From Unbacked (Injected) Memory | sigma: rules/windows/credential_access/proc_access_lsass_unbacked_calltrace.yml```
+`dac_windows_process_access` TargetImage="*\\lsass.exe"
+| regex CallTrace=".*ntdll\\.dll\\+[0-9a-fA-F]+\\|[^|]*KERNELBASE\\.dll\\+[0-9a-fA-F]+\\|UNKNOWN.*"

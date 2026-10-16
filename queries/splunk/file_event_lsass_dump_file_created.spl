@@ -1,0 +1,2 @@
+```LSASS Dump File Written to Disk | sigma: rules/windows/credential_access/file_event_lsass_dump_file_created.yml```
+`dac_windows_file_event` TargetFilename="*\\lsass*" TargetFilename IN ("*.dmp", "*.dump", "*.mdmp") NOT (Image="*\\WerFault.exe" TargetFilename="*\\CrashDumps\\*")

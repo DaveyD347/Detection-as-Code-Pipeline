@@ -1,0 +1,2 @@
+```DCSync - Directory Replication Requested by a User Account | sigma: rules/windows/credential_access/win_security_dcsync_replication_by_user.yml```
+`dac_windows_security` source="WinEventLog:Security" EventCode=4662 AccessMask="0x100" Properties IN ("*1131f6aa-9c07-11d1-f79f-00c04fc2dcd2*", "*1131f6ad-9c07-11d1-f79f-00c04fc2dcd2*", "*89e95b76-444d-4c62-991a-0facbeda640c*") NOT (SubjectUserName IN ("*$", "MSOL_*"))

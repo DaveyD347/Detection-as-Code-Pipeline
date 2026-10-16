@@ -1,0 +1,2 @@
+```WMI Provider Host Spawning a Shell or Script Host | sigma: rules/windows/execution/proc_creation_wmiprvse_spawns_shell.yml```
+`dac_windows_process_creation` ParentImage="*\\WmiPrvSE.exe" Image IN ("*\\cmd.exe", "*\\powershell.exe", "*\\pwsh.exe", "*\\wscript.exe", "*\\cscript.exe", "*\\mshta.exe", "*\\rundll32.exe", "*\\regsvr32.exe") NOT CommandLine="*WerFault*"

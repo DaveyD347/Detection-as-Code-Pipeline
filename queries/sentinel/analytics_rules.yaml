@@ -1,0 +1,376 @@
+rules:
+- id: ada85c61-e567-4deb-9a49-73ede4a4d6cb
+  name: LSASS Dump File Written to Disk
+  description: Detects creation of a minidump file whose name references LSASS. This is the artifact left by Task Manager's "Create dump file", ProcDump, comsvcs MiniDump, and most credential-dumping scripts, so it catches the outcome even when the dumping method is new.
+  severity: High
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - CredentialAccess
+  relevantTechniques:
+  - T1003
+  query: |-
+    DeviceFileEvents
+    | where (FolderPath contains "\\lsass" and (FolderPath endswith ".dmp" or FolderPath endswith ".dump" or FolderPath endswith ".mdmp")) and (not((InitiatingProcessFolderPath endswith "\\WerFault.exe" and FolderPath contains "\\CrashDumps\\")))
+  version: 1.0.0
+  status: Available
+- id: b19dd001-a710-46e3-be84-0af6afdf1a5d
+  name: File Download via bitsadmin
+  description: Detects bitsadmin creating a transfer job that pulls a file over HTTP(S). BITS jobs survive reboots, run inside svchost and are often missed by proxy logging tuned for browsers, which makes them a convenient ingress channel.
+  severity: Medium
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - CommandAndControl
+  - DefenseEvasion
+  - Execution
+  - Persistence
+  relevantTechniques:
+  - T1105
+  - T1197
+  query: |-
+    DeviceProcessEvents
+    | where (FolderPath endswith "\\bitsadmin.exe" or ProcessVersionInfoOriginalFileName =~ "bitsadmin.exe") and (ProcessCommandLine contains " -transfer " or ProcessCommandLine contains " /transfer " or ProcessCommandLine contains " –transfer " or ProcessCommandLine contains " —transfer " or ProcessCommandLine contains " ―transfer " or ProcessCommandLine contains " -create " or ProcessCommandLine contains " /create " or ProcessCommandLine contains " –create " or ProcessCommandLine contains " —create " or ProcessCommandLine contains " ―create " or ProcessCommandLine contains " -addfile " or ProcessCommandLine contains " /addfile " or ProcessCommandLine contains " –addfile " or ProcessCommandLine contains " —addfile " or ProcessCommandLine contains " ―addfile ") and (ProcessCommandLine contains "http://" or ProcessCommandLine contains "https://")
+  version: 1.0.0
+  status: Available
+- id: 48cdc894-a2ba-47e9-b48e-24ed77329eeb
+  name: CMSTP Silent INF Profile Install
+  description: Detects cmstp.exe silently installing a Connection Manager INF file. Malicious INFs use RunPreSetupCommands to execute arbitrary commands, and the /au variant auto-elevates through a COM interface to bypass UAC.
+  severity: High
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - DefenseEvasion
+  - PrivilegeEscalation
+  relevantTechniques:
+  - T1218
+  - T1548
+  query: |-
+    DeviceProcessEvents
+    | where (FolderPath endswith "\\cmstp.exe" or ProcessVersionInfoOriginalFileName =~ "CMSTP.EXE") and (ProcessCommandLine contains " -s " or ProcessCommandLine contains " /s " or ProcessCommandLine contains " –s " or ProcessCommandLine contains " —s " or ProcessCommandLine contains " ―s ") and ProcessCommandLine contains ".inf"
+  version: 1.0.0
+  status: Available
+- id: 99b6730b-91da-4ef5-9340-570745ba81d9
+  name: Locked Credential Store Copied via esentutl
+  description: Detects esentutl copying SAM, SYSTEM, SECURITY or ntds.dit. With /vss, esentutl reads the file through a shadow copy, bypassing the lock the OS holds on these databases.
+  severity: High
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - CredentialAccess
+  relevantTechniques:
+  - T1003
+  query: |-
+    DeviceProcessEvents
+    | where (FolderPath endswith "\\esentutl.exe" or ProcessVersionInfoOriginalFileName =~ "esentutl.exe") and (ProcessCommandLine contains " -y " or ProcessCommandLine contains " /y " or ProcessCommandLine contains " –y " or ProcessCommandLine contains " —y " or ProcessCommandLine contains " ―y ") and (ProcessCommandLine contains "/config/sam" or ProcessCommandLine contains "\\config\\sam" or ProcessCommandLine contains "/config/system" or ProcessCommandLine contains "\\config\\system" or ProcessCommandLine contains "/config/security" or ProcessCommandLine contains "\\config\\security" or ProcessCommandLine contains "ntds.dit")
+  version: 1.0.0
+  status: Available
+- id: afb0f68d-c4ad-4568-b209-dce11c373872
+  name: LSASS Memory Dump via comsvcs.dll MiniDump
+  description: Detects rundll32 loading comsvcs.dll and calling its MiniDump export, a living-off-the-land way to write a full memory dump of a process (almost always LSASS) without dropping a dumping tool. The export can be referenced by name or by ordinal (#24), so both forms are covered.
+  severity: High
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - CredentialAccess
+  relevantTechniques:
+  - T1003
+  query: |-
+    DeviceProcessEvents
+    | where (FolderPath endswith "\\rundll32.exe" or ProcessVersionInfoOriginalFileName =~ "RUNDLL32.EXE") and ProcessCommandLine contains "comsvcs" and (ProcessCommandLine contains "MiniDump" or ProcessCommandLine contains "#24" or ProcessCommandLine contains "#+24" or ProcessCommandLine contains "#-4294967272")
+  version: 1.0.0
+  status: Available
+- id: 6eb0b9bd-cddb-48aa-8b40-2c1ed922ea3f
+  name: Mshta Executing Inline VBScript or JavaScript
+  description: 'Detects mshta.exe given a vbscript: or javascript: protocol handler on the command line. This runs script directly from the command line, with no .hta file on disk, and is a common way to proxy a PowerShell or COM scriptlet payload through a signed Microsoft binary.'
+  severity: High
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - DefenseEvasion
+  relevantTechniques:
+  - T1218
+  query: |-
+    DeviceProcessEvents
+    | where (FolderPath endswith "\\mshta.exe" or ProcessVersionInfoOriginalFileName =~ "MSHTA.EXE") and (ProcessCommandLine contains "vbscript:" or ProcessCommandLine contains "javascript:" or ProcessCommandLine contains "about:")
+  version: 1.0.0
+  status: Available
+- id: e2b469de-9faf-47e3-ad88-bfd3b81eeeae
+  name: Local Users or Administrators Enumerated via net.exe
+  description: Detects net.exe / net1.exe listing local users or local group membership. Individually this is low-fidelity (helpdesk does it daily); it is shipped at low severity as a building block for correlation with other activity from the same process tree, and to keep discovery visible in coverage.
+  severity: Low
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - Discovery
+  relevantTechniques:
+  - T1069
+  - T1087
+  query: |-
+    DeviceProcessEvents
+    | where ((FolderPath endswith "\\net.exe" or FolderPath endswith "\\net1.exe") or (ProcessVersionInfoOriginalFileName in~ ("net.exe", "net1.exe"))) and ((ProcessCommandLine endswith " user" or ProcessCommandLine endswith " users") or ProcessCommandLine contains " localgroup") and (not(ProcessCommandLine contains " /domain"))
+  version: 1.0.0
+  status: Available
+- id: fd0a89a3-6594-40ce-968d-f5a84d4ce0a8
+  name: Inbound Firewall Allow Rule Added via netsh
+  description: Detects netsh adding an inbound allow rule to Windows Defender Firewall. Attackers open ports for C2 listeners, ad-hoc file servers or lateral movement; legitimate installers normally use the firewall API or MSI actions rather than spawning netsh.
+  severity: Medium
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - DefenseEvasion
+  relevantTechniques:
+  - T1686
+  query: |-
+    DeviceProcessEvents
+    | where (FolderPath endswith "\\netsh.exe" or ProcessVersionInfoOriginalFileName =~ "netsh.exe") and (ProcessCommandLine contains "firewall" and ProcessCommandLine contains "add") and (ProcessCommandLine contains "action=allow" or ProcessCommandLine contains "mode=enable") and (ProcessCommandLine contains "dir=in" or (ProcessCommandLine contains "portopening" and ProcessCommandLine contains "netsh firewall"))
+  version: 1.0.0
+  status: Available
+- id: 50450d2e-41e6-4b6b-b573-7359b9c98dbd
+  name: NTDS.dit Export via ntdsutil IFM
+  description: Detects ntdsutil creating Install-From-Media (IFM) output, which writes a copy of ntds.dit and the SYSTEM hive to a folder. Together they contain every domain account's password hash.
+  severity: High
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - CredentialAccess
+  relevantTechniques:
+  - T1003
+  query: |-
+    DeviceProcessEvents
+    | where (FolderPath endswith "\\ntdsutil.exe" or ProcessVersionInfoOriginalFileName =~ "ntdsutil.exe") and (ProcessCommandLine contains "ifm" and ProcessCommandLine contains "create")
+  version: 1.0.0
+  status: Available
+- id: 74db6c10-6176-40db-a788-c276f83b679a
+  name: Hidden PowerShell With Encoded Command (C2 Stager Pattern)
+  description: Detects PowerShell started with a hidden window, no profile and a Base64-encoded command. Each flag on its own is common in admin tooling; together they are the default launcher of Empire, Covenant, Cobalt Strike and most commodity loaders. Abbreviated flags (-w 1, -nop, -e, -ec, -enc) are covered because PowerShell accepts any unambiguous prefix.
+  severity: High
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - DefenseEvasion
+  - Execution
+  relevantTechniques:
+  - T1027
+  - T1059
+  query: |-
+    DeviceProcessEvents
+    | where ((FolderPath endswith "\\powershell.exe" or FolderPath endswith "\\pwsh.exe") or (ProcessVersionInfoOriginalFileName in~ ("PowerShell.EXE", "pwsh.dll"))) and (ProcessCommandLine contains " -w hidden" or ProcessCommandLine contains " /w hidden" or ProcessCommandLine contains " –w hidden" or ProcessCommandLine contains " —w hidden" or ProcessCommandLine contains " ―w hidden" or ProcessCommandLine contains " -w h " or ProcessCommandLine contains " /w h " or ProcessCommandLine contains " –w h " or ProcessCommandLine contains " —w h " or ProcessCommandLine contains " ―w h " or ProcessCommandLine contains " -w 1 " or ProcessCommandLine contains " /w 1 " or ProcessCommandLine contains " –w 1 " or ProcessCommandLine contains " —w 1 " or ProcessCommandLine contains " ―w 1 " or ProcessCommandLine contains " -wi hidden" or ProcessCommandLine contains " /wi hidden" or ProcessCommandLine contains " –wi hidden" or ProcessCommandLine contains " —wi hidden" or ProcessCommandLine contains " ―wi hidden" or ProcessCommandLine contains " -win hidden" or ProcessCommandLine contains " /win hidden" or ProcessCommandLine contains " –win hidden" or ProcessCommandLine contains " —win hidden" or ProcessCommandLine contains " ―win hidden" or ProcessCommandLine contains " -window hidden" or ProcessCommandLine contains " /window hidden" or ProcessCommandLine contains " –window hidden" or ProcessCommandLine contains " —window hidden" or ProcessCommandLine contains " ―window hidden" or ProcessCommandLine contains " -windowstyle hidden" or ProcessCommandLine contains " /windowstyle hidden" or ProcessCommandLine contains " –windowstyle hidden" or ProcessCommandLine contains " —windowstyle hidden" or ProcessCommandLine contains " ―windowstyle hidden" or ProcessCommandLine contains " -windowstyle 1 " or ProcessCommandLine contains " /windowstyle 1 " or ProcessCommandLine contains " –windowstyle 1 " or ProcessCommandLine contains " —windowstyle 1 " or ProcessCommandLine contains " ―windowstyle 1 ") and (ProcessCommandLine contains " -e " or ProcessCommandLine contains " /e " or ProcessCommandLine contains " –e " or ProcessCommandLine contains " —e " or ProcessCommandLine contains " ―e " or ProcessCommandLine contains " -ec " or ProcessCommandLine contains " /ec " or ProcessCommandLine contains " –ec " or ProcessCommandLine contains " —ec " or ProcessCommandLine contains " ―ec " or ProcessCommandLine contains " -en " or ProcessCommandLine contains " /en " or ProcessCommandLine contains " –en " or ProcessCommandLine contains " —en " or ProcessCommandLine contains " ―en " or ProcessCommandLine contains " -enc " or ProcessCommandLine contains " /enc " or ProcessCommandLine contains " –enc " or ProcessCommandLine contains " —enc " or ProcessCommandLine contains " ―enc " or ProcessCommandLine contains " -enco" or ProcessCommandLine contains " /enco" or ProcessCommandLine contains " –enco" or ProcessCommandLine contains " —enco" or ProcessCommandLine contains " ―enco")
+  version: 1.0.0
+  status: Available
+- id: 6fdfd5e3-788b-48b5-9e8e-dc2c75edb68d
+  name: Credential Registry Hive Saved via reg.exe
+  description: Detects reg.exe saving or exporting the SAM, SECURITY or SYSTEM hive. SAM plus SYSTEM is enough to recover local account NTLM hashes offline; SECURITY adds LSA secrets and cached domain credentials.
+  severity: High
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - CredentialAccess
+  relevantTechniques:
+  - T1003
+  query: |-
+    DeviceProcessEvents
+    | where (FolderPath endswith "\\reg.exe" or ProcessVersionInfoOriginalFileName =~ "reg.exe") and (ProcessCommandLine contains " save " or ProcessCommandLine contains " export ") and (ProcessCommandLine contains "hklm\\sam " or ProcessCommandLine contains "hklm\\sam\"" or ProcessCommandLine contains "hkey_local_machine\\sam " or ProcessCommandLine contains "hkey_local_machine\\sam\"" or ProcessCommandLine contains "hklm\\security " or ProcessCommandLine contains "hklm\\security\"" or ProcessCommandLine contains "hkey_local_machine\\security " or ProcessCommandLine contains "hkey_local_machine\\security\"" or ProcessCommandLine contains "hklm\\system " or ProcessCommandLine contains "hklm\\system\"" or ProcessCommandLine contains "hkey_local_machine\\system " or ProcessCommandLine contains "hkey_local_machine\\system\"")
+  version: 1.0.0
+  status: Available
+- id: 3be4dc96-be94-4260-adf1-d30fe33afa78
+  name: Regsvr32 Loading a Remote COM Scriptlet (Squiblydoo)
+  description: 'Detects regsvr32 invoking scrobj.dll with /i: pointing at a URL. This is the "Squiblydoo" technique: the signed binary downloads and executes a .sct scriptlet, bypassing application allow-listing.'
+  severity: High
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - DefenseEvasion
+  relevantTechniques:
+  - T1218
+  query: |-
+    DeviceProcessEvents
+    | where (FolderPath endswith "\\regsvr32.exe" or ProcessVersionInfoOriginalFileName =~ "REGSVR32.EXE") and ProcessCommandLine contains "scrobj" and (ProcessCommandLine contains "-i:http" or ProcessCommandLine contains "/i:http" or ProcessCommandLine contains "–i:http" or ProcessCommandLine contains "—i:http" or ProcessCommandLine contains "―i:http" or ProcessCommandLine contains "-i:ftp" or ProcessCommandLine contains "/i:ftp" or ProcessCommandLine contains "–i:ftp" or ProcessCommandLine contains "—i:ftp" or ProcessCommandLine contains "―i:ftp" or ProcessCommandLine contains "-i:\\\\" or ProcessCommandLine contains "/i:\\\\" or ProcessCommandLine contains "–i:\\\\" or ProcessCommandLine contains "—i:\\\\" or ProcessCommandLine contains "―i:\\\\")
+  version: 1.0.0
+  status: Available
+- id: 5c31c447-7455-4e36-90a3-4194fd6e3e98
+  name: Scheduled Task Created to Run a Script Interpreter
+  description: 'Detects schtasks.exe /create where the task action (/tr) runs PowerShell, cmd, a script host or mshta. Pairs with the Security 4698 rule: this one sees who ran schtasks and from where, 4698 sees the task regardless of the API used to register it.'
+  severity: Medium
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - Execution
+  - Persistence
+  - PrivilegeEscalation
+  relevantTechniques:
+  - T1053
+  query: |-
+    DeviceProcessEvents
+    | where (FolderPath endswith "\\schtasks.exe" or ProcessVersionInfoOriginalFileName =~ "schtasks.exe") and (ProcessCommandLine contains " -create " or ProcessCommandLine contains " /create " or ProcessCommandLine contains " –create " or ProcessCommandLine contains " —create " or ProcessCommandLine contains " ―create ") and ((ProcessCommandLine contains " -tr " or ProcessCommandLine contains " /tr " or ProcessCommandLine contains " –tr " or ProcessCommandLine contains " —tr " or ProcessCommandLine contains " ―tr ") and (ProcessCommandLine contains "powershell" or ProcessCommandLine contains "pwsh" or ProcessCommandLine contains "cmd.exe /c" or ProcessCommandLine contains "cmd /c" or ProcessCommandLine contains "wscript" or ProcessCommandLine contains "cscript" or ProcessCommandLine contains "mshta" or ProcessCommandLine contains "rundll32"))
+  version: 1.0.0
+  status: Available
+- id: 45d9e8e8-6077-44e3-a555-fea4b431ff8a
+  name: Service Control Manager Spawning a Shell Directly
+  description: Detects services.exe starting cmd.exe or PowerShell as a service binary. Real services are compiled executables; a shell as the service image is how PsExec-style tools (Impacket psexec/smbexec, Empire, Metasploit) turn "create a remote service" into "run my command as SYSTEM".
+  severity: High
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - Execution
+  - LateralMovement
+  relevantTechniques:
+  - T1021
+  - T1569
+  query: |-
+    DeviceProcessEvents
+    | where InitiatingProcessFolderPath endswith "\\services.exe" and (FolderPath endswith "\\cmd.exe" or FolderPath endswith "\\powershell.exe" or FolderPath endswith "\\pwsh.exe" or FolderPath endswith "\\mshta.exe" or FolderPath endswith "\\rundll32.exe")
+  version: 1.0.0
+  status: Available
+- id: daf87931-ad66-4ad7-a3bb-68a892e9ffae
+  name: Volume Shadow Copy Created From the Command Line
+  description: Detects vssadmin or wmic creating a volume shadow copy. Attackers create a snapshot to read locked files such as ntds.dit, SAM and SYSTEM. Backups normally go through the VSS API, not these command-line tools.
+  severity: Medium
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - CredentialAccess
+  relevantTechniques:
+  - T1003
+  query: |-
+    DeviceProcessEvents
+    | where (FolderPath endswith "\\vssadmin.exe" and (ProcessCommandLine contains "create" and ProcessCommandLine contains "shadow")) or (FolderPath endswith "\\wmic.exe" and (ProcessCommandLine contains "shadowcopy" and ProcessCommandLine contains "create"))
+  version: 1.0.0
+  status: Available
+- id: cc5e386f-e1d8-4ca7-9e66-0ed5f752e614
+  name: Event Log Cleared or Redirected via wevtutil
+  description: 'Detects wevtutil clearing an event log, disabling it, or pointing the Security log at a different file. Redirecting the log file is quieter than clearing it: no 1102 event is written, and new events land somewhere nobody collects.'
+  severity: High
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - DefenseEvasion
+  relevantTechniques:
+  - T1685
+  query: |-
+    DeviceProcessEvents
+    | where (FolderPath endswith "\\wevtutil.exe" or ProcessVersionInfoOriginalFileName =~ "wevtutil.exe") and ((ProcessCommandLine contains " cl " or ProcessCommandLine contains " clear-log ") or ((ProcessCommandLine contains " sl " or ProcessCommandLine contains " set-log ") and (ProcessCommandLine contains " -lfn:" or ProcessCommandLine contains " /lfn:" or ProcessCommandLine contains " –lfn:" or ProcessCommandLine contains " —lfn:" or ProcessCommandLine contains " ―lfn:" or ProcessCommandLine contains " -logfilename:" or ProcessCommandLine contains " /logfilename:" or ProcessCommandLine contains " –logfilename:" or ProcessCommandLine contains " —logfilename:" or ProcessCommandLine contains " ―logfilename:" or ProcessCommandLine contains " -e:false" or ProcessCommandLine contains " /e:false" or ProcessCommandLine contains " –e:false" or ProcessCommandLine contains " —e:false" or ProcessCommandLine contains " ―e:false" or ProcessCommandLine contains " -enabled:false" or ProcessCommandLine contains " /enabled:false" or ProcessCommandLine contains " –enabled:false" or ProcessCommandLine contains " —enabled:false" or ProcessCommandLine contains " ―enabled:false")))
+  version: 1.0.0
+  status: Available
+- id: 290f1923-6d5a-4101-baed-93430dae076d
+  name: WMI Provider Host Spawning a Shell or Script Host
+  description: Detects WmiPrvSE.exe starting a command interpreter. Win32_Process.Create, whether called locally or remotely over DCOM (wmic /node, Invoke-WmiMethod, Impacket wmiexec, Empire invoke_wmi), executes the new process as a child of WmiPrvSE, so this catches WMI-based execution regardless of the client tool.
+  severity: High
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - Execution
+  relevantTechniques:
+  - T1047
+  query: |-
+    DeviceProcessEvents
+    | where (InitiatingProcessFolderPath endswith "\\WmiPrvSE.exe" and (FolderPath endswith "\\cmd.exe" or FolderPath endswith "\\powershell.exe" or FolderPath endswith "\\pwsh.exe" or FolderPath endswith "\\wscript.exe" or FolderPath endswith "\\cscript.exe" or FolderPath endswith "\\mshta.exe" or FolderPath endswith "\\rundll32.exe" or FolderPath endswith "\\regsvr32.exe")) and (not(ProcessCommandLine contains "WerFault"))
+  version: 1.0.0
+  status: Available
+- id: 8ca880b3-b71f-4791-b76f-599103a0e369
+  name: MiniNt Registry Key Created to Silence Event Logging
+  description: Detects creation of HKLM\SYSTEM\CurrentControlSet\Control\MiniNt. The key tells Windows it is running in WinPE; after the next reboot the Event Log service stops writing, so every downstream detection goes blind while the machine otherwise looks healthy.
+  severity: High
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - DefenseEvasion
+  - Persistence
+  relevantTechniques:
+  - T1112
+  - T1685
+  query: |-
+    DeviceRegistryEvents
+    | where RegistryKey endswith "\\Control\\MiniNt"
+  version: 1.0.0
+  status: Available
+- id: 559575e6-81be-4aeb-bee4-b8b7f0fc82ce
+  name: DCSync - Directory Replication Requested by a User Account
+  description: Detects directory replication rights (DS-Replication-Get-Changes and DS-Replication-Get-Changes-All) being exercised by an account that is not a domain controller computer account. Domain controllers replicate as MACHINE$; a user account replicating secrets is the signature of DCSync (mimikatz lsadump::dcsync, secretsdump, Empire, Covenant). Requires "Audit Directory Service Access" on domain controllers.
+  severity: High
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - CredentialAccess
+  relevantTechniques:
+  - T1003
+  query: |-
+    SecurityEvent
+    | where (EventID == 4662 and AccessMask =~ "0x100" and (Properties contains "1131f6aa-9c07-11d1-f79f-00c04fc2dcd2" or Properties contains "1131f6ad-9c07-11d1-f79f-00c04fc2dcd2" or Properties contains "89e95b76-444d-4c62-991a-0facbeda640c")) and (not((SubjectUserName endswith "$" or SubjectUserName startswith "MSOL_")))
+  version: 1.0.0
+  status: Available
+- id: 4bc86b63-0112-4330-a347-4484c623cd01
+  name: Zerologon - Computer Account Password Reset by ANONYMOUS LOGON
+  description: Detects a computer account being changed by ANONYMOUS LOGON with a new password-set time. Exploiting CVE-2020-1472 (Zerologon) authenticates to Netlogon with an all-zero credential and then resets the domain controller's machine account password, which Windows logs as an anonymous 4742.
+  severity: High
+  kind: Scheduled
+  queryFrequency: PT10M
+  queryPeriod: PT15M
+  triggerOperator: gt
+  triggerThreshold: 0
+  tactics:
+  - LateralMovement
+  relevantTechniques:
+  - T1210
+  query: |-
+    SecurityEvent
+    | where (EventID == 4742 and SubjectUserName =~ "ANONYMOUS LOGON") and (not(PasswordLastSet =~ "-"))
+  version: 1.0.0
+  status: Available

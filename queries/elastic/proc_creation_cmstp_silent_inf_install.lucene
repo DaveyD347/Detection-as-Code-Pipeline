@@ -1,0 +1,1 @@
+(process.executable.caseless:*\\cmstp.exe OR process.pe.original_file_name:CMSTP.EXE) AND process.command_line:(*\ \-s\ * OR *\ \/s\ * OR *\ –s\ * OR *\ —s\ * OR *\ ―s\ *) AND process.command_line:*.inf*

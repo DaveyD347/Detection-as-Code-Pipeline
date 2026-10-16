@@ -1,0 +1,2 @@
+```CMSTP Silent INF Profile Install | sigma: rules/windows/stealth/proc_creation_cmstp_silent_inf_install.yml```
+`dac_windows_process_creation` Image="*\\cmstp.exe" OR OriginalFileName="CMSTP.EXE" CommandLine="* -s *" OR CommandLine="* /s *" OR CommandLine="* –s *" OR CommandLine="* —s *" OR CommandLine="* ―s *" CommandLine="*.inf*"

@@ -1,0 +1,2 @@
+```WMI Event Consumer Created to Run a Command or Script | sigma: rules/windows/persistence/wmi_event_command_line_consumer.yml```
+`dac_windows_wmi_event` EventCode=20 Type IN ("Command Line", "Script") NOT Destination="*BVTConsumer*"

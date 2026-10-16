@@ -1,0 +1,4 @@
+// LSASS Memory Dump via comsvcs.dll MiniDump
+// sigma: rules/windows/credential_access/proc_creation_lsass_dump_comsvcs_minidump.yml | profile: microsoft_xdr
+DeviceProcessEvents
+| where (FolderPath endswith "\\rundll32.exe" or ProcessVersionInfoOriginalFileName =~ "RUNDLL32.EXE") and ProcessCommandLine contains "comsvcs" and (ProcessCommandLine contains "MiniDump" or ProcessCommandLine contains "#24" or ProcessCommandLine contains "#+24" or ProcessCommandLine contains "#-4294967272")

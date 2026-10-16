@@ -1,0 +1,1 @@
+(process.executable.caseless:*\\rundll32.exe OR process.pe.original_file_name:RUNDLL32.EXE) AND process.command_line:*comsvcs* AND (process.command_line:(*MiniDump* OR *#24* OR *#\+24* OR *#\-4294967272*))

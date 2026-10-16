@@ -1,0 +1,4 @@
+// Service Control Manager Spawning a Shell Directly
+// sigma: rules/windows/execution/proc_creation_services_spawns_shell.yml | profile: microsoft_xdr
+DeviceProcessEvents
+| where InitiatingProcessFolderPath endswith "\\services.exe" and (FolderPath endswith "\\cmd.exe" or FolderPath endswith "\\powershell.exe" or FolderPath endswith "\\pwsh.exe" or FolderPath endswith "\\mshta.exe" or FolderPath endswith "\\rundll32.exe")

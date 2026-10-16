@@ -1,0 +1,4 @@
+// LSASS Dump File Written to Disk
+// sigma: rules/windows/credential_access/file_event_lsass_dump_file_created.yml | profile: microsoft_xdr
+DeviceFileEvents
+| where (FolderPath contains "\\lsass" and (FolderPath endswith ".dmp" or FolderPath endswith ".dump" or FolderPath endswith ".mdmp")) and (not((InitiatingProcessFolderPath endswith "\\WerFault.exe" and FolderPath contains "\\CrashDumps\\")))

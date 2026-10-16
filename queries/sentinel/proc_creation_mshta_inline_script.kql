@@ -1,0 +1,4 @@
+// Mshta Executing Inline VBScript or JavaScript
+// sigma: rules/windows/stealth/proc_creation_mshta_inline_script.yml | profile: microsoft_xdr
+DeviceProcessEvents
+| where (FolderPath endswith "\\mshta.exe" or ProcessVersionInfoOriginalFileName =~ "MSHTA.EXE") and (ProcessCommandLine contains "vbscript:" or ProcessCommandLine contains "javascript:" or ProcessCommandLine contains "about:")

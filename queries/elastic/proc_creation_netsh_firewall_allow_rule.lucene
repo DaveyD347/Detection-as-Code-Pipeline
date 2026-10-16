@@ -1,0 +1,1 @@
+(process.executable.caseless:*\\netsh.exe OR process.pe.original_file_name:netsh.exe) AND (process.command_line:*firewall* AND process.command_line:*add*) AND (process.command_line:(*action\=allow* OR *mode\=enable*)) AND (process.command_line:*dir\=in* OR (process.command_line:*portopening* AND process.command_line:*netsh\ firewall*))

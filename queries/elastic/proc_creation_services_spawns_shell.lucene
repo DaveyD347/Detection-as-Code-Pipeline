@@ -1,0 +1,1 @@
+process.parent.executable.caseless:*\\services.exe AND (process.executable.caseless:(*\\cmd.exe OR *\\powershell.exe OR *\\pwsh.exe OR *\\mshta.exe OR *\\rundll32.exe))

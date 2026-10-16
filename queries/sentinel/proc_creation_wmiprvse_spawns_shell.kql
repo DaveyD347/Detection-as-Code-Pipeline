@@ -1,0 +1,4 @@
+// WMI Provider Host Spawning a Shell or Script Host
+// sigma: rules/windows/execution/proc_creation_wmiprvse_spawns_shell.yml | profile: microsoft_xdr
+DeviceProcessEvents
+| where (InitiatingProcessFolderPath endswith "\\WmiPrvSE.exe" and (FolderPath endswith "\\cmd.exe" or FolderPath endswith "\\powershell.exe" or FolderPath endswith "\\pwsh.exe" or FolderPath endswith "\\wscript.exe" or FolderPath endswith "\\cscript.exe" or FolderPath endswith "\\mshta.exe" or FolderPath endswith "\\rundll32.exe" or FolderPath endswith "\\regsvr32.exe")) and (not(ProcessCommandLine contains "WerFault"))

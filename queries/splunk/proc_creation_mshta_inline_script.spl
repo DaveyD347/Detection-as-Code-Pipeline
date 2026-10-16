@@ -1,0 +1,2 @@
+```Mshta Executing Inline VBScript or JavaScript | sigma: rules/windows/stealth/proc_creation_mshta_inline_script.yml```
+`dac_windows_process_creation` Image="*\\mshta.exe" OR OriginalFileName="MSHTA.EXE" CommandLine IN ("*vbscript:*", "*javascript:*", "*about:*")

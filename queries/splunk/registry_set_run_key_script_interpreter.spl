@@ -1,0 +1,2 @@
+```Run Key Persistence Launching a Script Interpreter | sigma: rules/windows/persistence/registry_set_run_key_script_interpreter.yml```
+`dac_windows_registry_set` TargetObject IN ("*\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\*", "*\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce\\*", "*\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run\\*", "*\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\RunOnce\\*") Details IN ("*powershell*", "*pwsh*", "*wscript*", "*cscript*", "*mshta*", "*rundll32*", "*regsvr32*", "*cmd.exe /c*", "*cmd /c*")

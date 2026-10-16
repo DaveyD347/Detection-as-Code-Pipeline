@@ -1,0 +1,1 @@
+(process.parent.executable.caseless:*\\WmiPrvSE.exe AND (process.executable.caseless:(*\\cmd.exe OR *\\powershell.exe OR *\\pwsh.exe OR *\\wscript.exe OR *\\cscript.exe OR *\\mshta.exe OR *\\rundll32.exe OR *\\regsvr32.exe))) AND (NOT process.command_line:*WerFault*)
