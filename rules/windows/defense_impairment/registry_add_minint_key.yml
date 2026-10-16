@@ -1,0 +1,28 @@
+title: MiniNt Registry Key Created to Silence Event Logging
+id: 8ca880b3-b71f-4791-b76f-599103a0e369
+status: test
+description: |
+  Detects creation of HKLM\SYSTEM\CurrentControlSet\Control\MiniNt. The key
+  tells Windows it is running in WinPE; after the next reboot the Event Log
+  service stops writing, so every downstream detection goes blind while the
+  machine otherwise looks healthy.
+references:
+  - https://attack.mitre.org/techniques/T1685/001/
+  - https://twitter.com/0gtweet/status/1182516740955226112
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.defense-impairment
+  - attack.t1685.001
+  - attack.t1112
+logsource:
+  product: windows
+  category: registry_add
+detection:
+  selection:
+    TargetObject|endswith:
+      - '\Control\MiniNt'
+  condition: selection
+falsepositives:
+  - None on a running OS; MiniNt only exists legitimately inside WinPE images.
+level: high

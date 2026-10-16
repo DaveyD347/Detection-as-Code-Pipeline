@@ -1,0 +1,12 @@
+rule: registry_add_minint_key
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 12, EventType: CreateKey}
+match:
+  - name: OTRF sample
+    event: {Image: 'C:\Users\IT01-Pedro\Downloads\payload.exe', TargetObject: 'HKLM\System\CurrentControlSet\Control\MiniNt'}
+  - name: ControlSet001 path
+    event: {Image: 'C:\Windows\System32\reg.exe', TargetObject: 'HKLM\System\ControlSet001\Control\MiniNt'}
+no_match:
+  - name: key deletion is a different event type
+    event: {EventType: DeleteKey, Image: 'C:\Windows\System32\reg.exe', TargetObject: 'HKLM\System\CurrentControlSet\Control\MiniNt'}
+  - name: unrelated Control subkey
+    event: {Image: 'C:\Windows\System32\svchost.exe', TargetObject: 'HKLM\System\CurrentControlSet\Control\MiniNtFoo'}

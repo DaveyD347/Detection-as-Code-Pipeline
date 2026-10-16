@@ -1,0 +1,51 @@
+title: Hidden PowerShell With Encoded Command (C2 Stager Pattern)
+id: 74db6c10-6176-40db-a788-c276f83b679a
+status: test
+description: |
+  Detects PowerShell started with a hidden window, no profile and a
+  Base64-encoded command. Each flag on its own is common in admin tooling;
+  together they are the default launcher of Empire, Covenant, Cobalt Strike
+  and most commodity loaders. Abbreviated flags (-w 1, -nop, -e, -ec, -enc)
+  are covered because PowerShell accepts any unambiguous prefix.
+references:
+  - https://attack.mitre.org/techniques/T1059/001/
+  - https://attack.mitre.org/techniques/T1027/010/
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.execution
+  - attack.t1059.001
+  - attack.stealth
+  - attack.t1027.010
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_img:
+    - Image|endswith:
+        - '\powershell.exe'
+        - '\pwsh.exe'
+    - OriginalFileName:
+        - PowerShell.EXE
+        - pwsh.dll
+  selection_hidden:
+    CommandLine|contains|windash:
+      - ' -w hidden'
+      - ' -w h '
+      - ' -w 1 '
+      - ' -wi hidden'
+      - ' -win hidden'
+      - ' -window hidden'
+      - ' -windowstyle hidden'
+      - ' -windowstyle 1 '
+  selection_encoded:
+    CommandLine|contains|windash:
+      - ' -e '
+      - ' -ec '
+      - ' -en '
+      - ' -enc '
+      - ' -enco'
+  condition: all of selection_*
+falsepositives:
+  - Some RMM and patching agents run hidden encoded PowerShell; baseline by parent process and exclude.
+level: high

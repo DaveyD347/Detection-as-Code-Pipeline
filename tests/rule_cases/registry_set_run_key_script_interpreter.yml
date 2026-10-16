@@ -1,0 +1,12 @@
+rule: registry_set_run_key_script_interpreter
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 13, EventType: SetValue}
+match:
+  - name: OTRF Empire Run key
+    event: {Image: 'C:\windows\System32\WindowsPowerShell\v1.0\powershell.exe', TargetObject: 'HKU\S-1-5-21-3125456671-949036322-3048627137-1104\Software\Microsoft\Windows\CurrentVersion\Run\Updater', Details: '"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -c "$x=$((gp HKCU:Software\Microsoft\Windows Update).Update); powershell -NoP -NonI -W Hidden -enc $x"'}
+  - name: HKLM RunOnce with mshta
+    event: {Image: 'C:\Windows\System32\reg.exe', TargetObject: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce\x', Details: 'mshta vbscript:Execute("...")'}
+no_match:
+  - name: installer registering its own executable
+    event: {Image: 'C:\Program Files\Vendor\setup.exe', TargetObject: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run\VendorTray', Details: '"C:\Program Files\Vendor\tray.exe" /min'}
+  - name: Empire stashing the payload in a non-Run key (OTRF)
+    event: {Image: 'C:\windows\System32\WindowsPowerShell\v1.0\powershell.exe', TargetObject: 'HKU\S-1-5-21-1\Software\Microsoft\Windows\CurrentVersion\Debug', Details: 'SQBGACgAJABQAFMAVgBFAFIAUwBpAG8AbgBUAEEAQgBsAEUA'}

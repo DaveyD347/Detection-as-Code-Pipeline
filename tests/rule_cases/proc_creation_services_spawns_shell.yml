@@ -1,0 +1,12 @@
+rule: proc_creation_services_spawns_shell
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 1, ParentImage: 'C:\Windows\System32\services.exe'}
+match:
+  - name: OTRF Empire psexec
+    event: {Image: 'C:\Windows\System32\cmd.exe', CommandLine: 'C:\windows\system32\cmd.exe /C start /b C:\Windows\System32\WindowsPowershell\v1.0\powershell -noP -sta -w 1 -enc  SQBmACgAJABQAFMAVgBFAHIA'}
+  - name: Security 4688 telemetry
+    event: {Channel: Security, EventID: 4688, ParentImage: null, ParentProcessName: 'C:\Windows\System32\services.exe', NewProcessName: 'C:\Windows\System32\cmd.exe', CommandLine: 'cmd.exe /Q /c echo cd ^> \\127.0.0.1\C$\__output > %TEMP%\execute.bat'}
+no_match:
+  - name: normal service binary
+    event: {Image: 'C:\Windows\System32\svchost.exe', CommandLine: 'C:\Windows\system32\svchost.exe -k netsvcs -p'}
+  - name: OTRF background (VSS service)
+    event: {Image: 'C:\Windows\System32\VSSVC.exe', CommandLine: 'C:\Windows\system32\vssvc.exe'}

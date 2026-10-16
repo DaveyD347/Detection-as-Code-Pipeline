@@ -1,0 +1,29 @@
+title: NTDS.dit Export via ntdsutil IFM
+id: 50450d2e-41e6-4b6b-b573-7359b9c98dbd
+status: test
+description: |
+  Detects ntdsutil creating Install-From-Media (IFM) output, which writes a
+  copy of ntds.dit and the SYSTEM hive to a folder. Together they contain every
+  domain account's password hash.
+references:
+  - https://attack.mitre.org/techniques/T1003/003/
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.credential-access
+  - attack.t1003.003
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_img:
+    - Image|endswith: '\ntdsutil.exe'
+    - OriginalFileName: ntdsutil.exe
+  selection_ifm:
+    CommandLine|contains|all:
+      - ifm
+      - create
+  condition: all of selection_*
+falsepositives:
+  - Planned domain controller promotion from media; correlate with a change record.
+level: high

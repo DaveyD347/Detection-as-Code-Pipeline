@@ -1,0 +1,14 @@
+rule: proc_access_lsass_direct_syscall
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 10, TargetImage: 'C:\Windows\system32\lsass.exe', GrantedAccess: '0x1fffff'}
+match:
+  - name: OTRF Dumpert sample
+    event: {SourceImage: 'C:\Users\wardog\Desktop\Outflank-Dumpert.exe', CallTrace: 'C:\Users\wardog\Desktop\Outflank-Dumpert.exe+13542|C:\Users\wardog\Desktop\Outflank-Dumpert.exe+12e7d|C:\Windows\System32\KERNEL32.DLL+17614'}
+  - name: syscall stub in unbacked memory
+    event: {SourceImage: 'C:\Windows\System32\rundll32.exe', CallTrace: 'UNKNOWN(000001A2B3C4D5E6)|C:\Windows\System32\KERNEL32.DLL+17614'}
+no_match:
+  - name: normal access through ntdll (lower-case path as Sysmon often writes it)
+    event: {SourceImage: 'C:\Windows\System32\svchost.exe', CallTrace: 'c:\windows\SYSTEM32\ntdll.dll+9c584|C:\Windows\System32\KERNELBASE.dll+2726e|c:\windows\system32\lsm.dll+10daa'}
+  - name: WOW64 caller
+    event: {SourceImage: 'C:\Program Files (x86)\Agent\agent.exe', CallTrace: 'C:\Windows\SYSTEM32\ntdll.dll+9c584|C:\Windows\System32\wow64.dll+1234|C:\Windows\SysWOW64\ntdll.dll+7aa1'}
+  - name: empty CallTrace (Sysmon configured without call stacks)
+    event: {SourceImage: 'C:\x.exe', CallTrace: ''}

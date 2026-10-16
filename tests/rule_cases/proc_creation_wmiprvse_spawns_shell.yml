@@ -1,0 +1,12 @@
+rule: proc_creation_wmiprvse_spawns_shell
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 1, ParentImage: 'C:\Windows\System32\wbem\WmiPrvSE.exe'}
+match:
+  - name: OTRF Empire invoke_wmi
+    event: {Image: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe', CommandLine: 'C:\Windows\System32\WindowsPowershell\v1.0\powershell -noP -sta -w 1 -enc  SQBGACgAJABQAFMAVgBlAHIAcwBJAG8ATgBUAEEAQgBsAGUA'}
+  - name: Impacket wmiexec
+    event: {Image: 'C:\Windows\System32\cmd.exe', CommandLine: 'cmd.exe /Q /c whoami 1> \\127.0.0.1\ADMIN$\__1665928000.12 2>&1'}
+no_match:
+  - name: WmiPrvSE spawning WerFault
+    event: {Image: 'C:\Windows\System32\WerFault.exe', CommandLine: 'C:\Windows\system32\WerFault.exe -u -p 4242 -s 512'}
+  - name: cmd spawned by explorer
+    event: {ParentImage: 'C:\Windows\explorer.exe', Image: 'C:\Windows\System32\cmd.exe', CommandLine: '"C:\Windows\system32\cmd.exe"'}

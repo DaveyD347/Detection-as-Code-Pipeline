@@ -1,0 +1,39 @@
+title: Inbound Firewall Allow Rule Added via netsh
+id: fd0a89a3-6594-40ce-968d-f5a84d4ce0a8
+status: test
+description: |
+  Detects netsh adding an inbound allow rule to Windows Defender Firewall.
+  Attackers open ports for C2 listeners, ad-hoc file servers or lateral
+  movement; legitimate installers normally use the firewall API or MSI
+  actions rather than spawning netsh.
+references:
+  - https://attack.mitre.org/techniques/T1686/003/
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.defense-impairment
+  - attack.t1686.003
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_img:
+    - Image|endswith: '\netsh.exe'
+    - OriginalFileName: netsh.exe
+  selection_add:
+    CommandLine|contains|all:
+      - firewall
+      - add
+  selection_allow:
+    CommandLine|contains:
+      - 'action=allow'
+      - 'mode=enable'  # legacy "netsh firewall add portopening ... mode=enable"
+  selection_inbound:
+    - CommandLine|contains: 'dir=in'
+    - CommandLine|contains|all:
+        - 'portopening'
+        - 'netsh firewall'
+  condition: all of selection_*
+falsepositives:
+  - Software installers (game launchers, developer tools) that shell out to netsh; exclude by parent process.
+level: medium

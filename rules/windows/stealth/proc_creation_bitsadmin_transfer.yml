@@ -1,0 +1,38 @@
+title: File Download via bitsadmin
+id: b19dd001-a710-46e3-be84-0af6afdf1a5d
+status: test
+description: |
+  Detects bitsadmin creating a transfer job that pulls a file over HTTP(S).
+  BITS jobs survive reboots, run inside svchost and are often missed by proxy
+  logging tuned for browsers, which makes them a convenient ingress channel.
+references:
+  - https://attack.mitre.org/techniques/T1197/
+  - https://lolbas-project.github.io/lolbas/Binaries/Bitsadmin/
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.stealth
+  - attack.persistence
+  - attack.t1197
+  - attack.command-and-control
+  - attack.t1105
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_img:
+    - Image|endswith: '\bitsadmin.exe'
+    - OriginalFileName: bitsadmin.exe
+  selection_job:
+    CommandLine|contains|windash:
+      - ' -transfer '
+      - ' -create '
+      - ' -addfile '
+  selection_url:
+    CommandLine|contains:
+      - 'http://'
+      - 'https://'
+  condition: all of selection_*
+falsepositives:
+  - Legacy software updaters; modern Windows components use the BITS API, not the bitsadmin binary.
+level: medium

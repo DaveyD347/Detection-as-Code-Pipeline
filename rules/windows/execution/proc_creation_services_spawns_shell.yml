@@ -1,0 +1,34 @@
+title: Service Control Manager Spawning a Shell Directly
+id: 45d9e8e8-6077-44e3-a555-fea4b431ff8a
+status: test
+description: |
+  Detects services.exe starting cmd.exe or PowerShell as a service binary.
+  Real services are compiled executables; a shell as the service image is how
+  PsExec-style tools (Impacket psexec/smbexec, Empire, Metasploit) turn
+  "create a remote service" into "run my command as SYSTEM".
+references:
+  - https://attack.mitre.org/techniques/T1569/002/
+  - https://attack.mitre.org/techniques/T1021/002/
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.execution
+  - attack.t1569.002
+  - attack.lateral-movement
+  - attack.t1021.002
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection:
+    ParentImage|endswith: '\services.exe'
+    Image|endswith:
+      - '\cmd.exe'
+      - '\powershell.exe'
+      - '\pwsh.exe'
+      - '\mshta.exe'
+      - '\rundll32.exe'
+  condition: selection
+falsepositives:
+  - Badly packaged third-party services that wrap a batch file; inventory and exclude by command line.
+level: high

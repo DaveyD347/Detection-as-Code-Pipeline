@@ -1,0 +1,12 @@
+rule: proc_creation_schtasks_create_interpreter_action
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 1, Image: 'C:\Windows\System32\schtasks.exe'}
+match:
+  - name: OTRF Empire persistence
+    event: {CommandLine: '"C:\windows\system32\schtasks.exe" /Create /F /SC DAILY /ST 09:00 /TN MordorSchtask /TR "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NonI -W hidden -c \"IEX ([Text.Encoding]::UNICODE.GetString([Convert]::FromBase64String((gp HKCU:\Software\Microsoft\Windows\CurrentVersion debug).debug)))\""'}
+  - name: OTRF remote task with cmd action
+    event: {CommandLine: 'schtasks  /create /F /tn \Microsoft\Windows\SoftwareProtectionPlatform\EventCacheManager /tr "C:\Windows\system32\cmd.exe /C C:\Windows\System32\notepad.exe" /sc ONSTART /ru system /S WORKSTATION6'}
+no_match:
+  - name: task running a regular executable
+    event: {CommandLine: 'schtasks /create /tn VendorUpdate /tr "C:\Program Files\Vendor\update.exe" /sc daily'}
+  - name: querying tasks
+    event: {CommandLine: 'schtasks /query /fo LIST /v'}

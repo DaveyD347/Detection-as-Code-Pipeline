@@ -1,0 +1,10 @@
+rule: win_security_scheduled_task_masquerading_microsoft_path
+base: {Channel: Security, EventID: 4698}
+match:
+  - name: OTRF remote task under \Microsoft\Windows\
+    event: {SubjectUserName: pgustavo, SubjectUserSid: S-1-5-21-1-2-3-1104, TaskName: '\Microsoft\Windows\SoftwareProtectionPlatform\EventCacheManager'}
+no_match:
+  - name: registered by SYSTEM during servicing
+    event: {SubjectUserName: 'WORKSTATION6$', SubjectUserSid: S-1-5-18, TaskName: '\Microsoft\Windows\UpdateOrchestrator\Reboot'}
+  - name: user task outside the Microsoft folder (OTRF Empire)
+    event: {SubjectUserName: pgustavo, SubjectUserSid: S-1-5-21-1-2-3-1104, TaskName: '\MordorSchtask'}

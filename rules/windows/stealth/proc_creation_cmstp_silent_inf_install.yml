@@ -1,0 +1,32 @@
+title: CMSTP Silent INF Profile Install
+id: 48cdc894-a2ba-47e9-b48e-24ed77329eeb
+status: test
+description: |
+  Detects cmstp.exe silently installing a Connection Manager INF file. Malicious INFs use RunPreSetupCommands to execute arbitrary
+  commands, and the /au variant auto-elevates through a COM interface to
+  bypass UAC.
+references:
+  - https://attack.mitre.org/techniques/T1218/003/
+  - https://lolbas-project.github.io/lolbas/Binaries/Cmstp/
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.stealth
+  - attack.t1218.003
+  - attack.privilege-escalation
+  - attack.t1548.002
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_img:
+    - Image|endswith: '\cmstp.exe'
+    - OriginalFileName: CMSTP.EXE
+  selection_silent:
+    CommandLine|contains|windash: ' -s '
+  selection_inf:
+    CommandLine|contains: '.inf'
+  condition: all of selection_*
+falsepositives:
+  - VPN clients deployed with Connection Manager profiles; exclude their known INF paths.
+level: high

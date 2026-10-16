@@ -1,0 +1,18 @@
+rule: proc_creation_powershell_hidden_encoded_launcher
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 1, Image: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'}
+match:
+  - name: OTRF Empire launcher via regsvr32
+    event: {ParentImage: 'C:\Windows\System32\regsvr32.exe', CommandLine: '"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -noP -sta -w 1 -enc  SQBGACgAJABQAFMAVgBFAHIAcwBJAG8ATgBUAGEAQgBMAGUA'}
+  - name: OTRF Empire launcher via fodhelper
+    event: {CommandLine: '"C:\windows\System32\WindowsPowerShell\v1.0\powershell.exe" -NoP -NonI -W Hidden -enc SQBGACgAJABQAFMAVgBFAFIAUwBJAE8AbgBUAEEAQgBsAEUA'}
+  - name: long-form flags with slash prefix
+    event: {CommandLine: 'powershell.exe /WindowStyle Hidden /EncodedCommand SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQA'}
+  - name: pwsh 7
+    event: {Image: 'C:\Program Files\PowerShell\7\pwsh.exe', CommandLine: 'pwsh -w hidden -ec SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQA'}
+no_match:
+  - name: hidden but not encoded (scheduled maintenance script)
+    event: {CommandLine: 'powershell.exe -NoProfile -WindowStyle Hidden -File C:\Scripts\cleanup.ps1'}
+  - name: encoded but visible
+    event: {CommandLine: 'powershell.exe -enc SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQA'}
+  - name: execution policy flag shares the -e prefix
+    event: {CommandLine: 'powershell.exe -w hidden -ExecutionPolicy Bypass -File C:\Scripts\inventory.ps1'}

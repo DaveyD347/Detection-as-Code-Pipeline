@@ -1,0 +1,28 @@
+title: UAC Bypass via ms-settings Protocol Handler Hijack
+id: 9925294f-f263-4c2b-916a-9711a56b88c0
+status: test
+description: |
+  Detects a per-user ms-settings shell\open\command handler being written.
+  Auto-elevating binaries such as fodhelper.exe and computerdefaults.exe read
+  this key from HKCU before HKLM, so a standard user can make them launch any
+  command at high integrity without a UAC prompt.
+references:
+  - https://attack.mitre.org/techniques/T1548/002/
+  - https://winscripting.blog/2017/05/12/first-entry-welcome-and-uac-bypass/
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.privilege-escalation
+  - attack.t1548.002
+logsource:
+  product: windows
+  category: registry_set
+detection:
+  selection:
+    TargetObject|endswith:
+      - '\ms-settings\shell\open\command\(Default)'
+      - '\ms-settings\shell\open\command\DelegateExecute'
+  condition: selection
+falsepositives:
+  - None known.
+level: high

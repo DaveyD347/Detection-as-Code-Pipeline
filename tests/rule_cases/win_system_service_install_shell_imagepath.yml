@@ -1,0 +1,12 @@
+rule: win_system_service_install_shell_imagepath
+base: {Channel: System, EventID: 7045, SourceName: Service Control Manager}
+match:
+  - name: OTRF Empire psexec service
+    event: {ServiceName: Updater, ImagePath: '%COMSPEC% /C start /b C:\Windows\System32\WindowsPowershell\v1.0\powershell -noP -sta -w 1 -enc  SQBmACgAJABQAFMAVgBFAHIA'}
+  - name: Impacket smbexec (modern Provider_Name field)
+    event: {SourceName: null, Provider_Name: Service Control Manager, ServiceName: BTOBTO, ImagePath: '%COMSPEC% /Q /c echo cd  ^> \\127.0.0.1\C$\__output 2^>^&1 > %TEMP%\execute.bat'}
+no_match:
+  - name: driver install
+    event: {ServiceName: npcap, ImagePath: 'system32\DRIVERS\npcap.sys'}
+  - name: normal service
+    event: {ServiceName: VendorUpdate, ImagePath: '"C:\Program Files\Vendor\update.exe" /service'}

@@ -1,0 +1,41 @@
+title: Event Log Cleared or Redirected via wevtutil
+id: cc5e386f-e1d8-4ca7-9e66-0ed5f752e614
+status: test
+description: |
+  Detects wevtutil clearing an event log, disabling it, or pointing the
+  Security log at a different file. Redirecting the log file is quieter than
+  clearing it: no 1102 event is written, and new events land somewhere nobody
+  collects.
+references:
+  - https://attack.mitre.org/techniques/T1685/001/
+  - https://attack.mitre.org/techniques/T1685/005/
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.defense-impairment
+  - attack.t1685.001
+  - attack.t1685.005
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_img:
+    - Image|endswith: '\wevtutil.exe'
+    - OriginalFileName: wevtutil.exe
+  selection_clear:
+    CommandLine|contains:
+      - ' cl '
+      - ' clear-log '
+  selection_modify:
+    CommandLine|contains:
+      - ' sl '
+      - ' set-log '
+    CommandLine|contains|windash:
+      - ' -lfn:'
+      - ' -logfilename:'
+      - ' -e:false'
+      - ' -enabled:false'
+  condition: selection_img and (selection_clear or selection_modify)
+falsepositives:
+  - Golden-image build pipelines that clear logs before capture.
+level: high

@@ -1,0 +1,16 @@
+rule: proc_creation_lsass_dump_comsvcs_minidump
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 1, Image: 'C:\Windows\System32\rundll32.exe'}
+match:
+  - name: OTRF sample (named export)
+    event: {CommandLine: '"C:\Windows\System32\rundll32.exe" C:\windows\System32\comsvcs.dll MiniDump 756 C:\Users\wardog\AppData\Local\Temp\lsass-comsvcs.dmp full'}
+  - name: export by ordinal
+    event: {CommandLine: 'rundll32.exe C:\Windows\System32\comsvcs.dll, #24 624 C:\temp\x.bin full'}
+  - name: renamed rundll32 still caught by OriginalFileName
+    event: {Image: 'C:\Users\Public\svc.exe', OriginalFileName: RUNDLL32.EXE, CommandLine: 'svc.exe comsvcs.dll,MiniDump 624 out.dmp full'}
+  - name: Security 4688 telemetry
+    event: {Channel: Security, EventID: 4688, Image: null, NewProcessName: 'C:\Windows\System32\rundll32.exe', CommandLine: 'rundll32 comsvcs.dll MiniDump 624 c:\x.dmp full'}
+no_match:
+  - name: comsvcs loaded for an unrelated export
+    event: {CommandLine: 'rundll32.exe comsvcs.dll,DllRegisterServer'}
+  - name: MiniDump string in a different binary
+    event: {Image: 'C:\Program Files\Debugging Tools\cdb.exe', CommandLine: 'cdb.exe -c ".dump /ma MiniDump.dmp"'}

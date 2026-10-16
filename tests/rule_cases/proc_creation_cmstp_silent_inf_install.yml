@@ -1,0 +1,12 @@
+rule: proc_creation_cmstp_silent_inf_install
+base: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 1, Image: 'C:\Windows\System32\cmstp.exe'}
+match:
+  - name: OTRF sample
+    event: {CommandLine: '"C:\windows\system32\cmstp.exe" /s C:\ProgramData\T1218.003_uacbypass.inf /au'}
+  - name: dash flag
+    event: {CommandLine: 'cmstp.exe -s c:\users\public\x.inf'}
+no_match:
+  - name: interactive profile install
+    event: {CommandLine: 'cmstp.exe "C:\Program Files\VPN\profile.inf"'}
+  - name: uninstall
+    event: {CommandLine: 'cmstp.exe /u /s profile.cmp'}

@@ -1,0 +1,41 @@
+title: LSASS Accessed From Unbacked (Injected) Memory
+id: b61e3054-2e98-4dbc-9a83-fe478683a969
+status: test
+description: |
+  Sysmon records the call stack of every LSASS handle request. A frame marked
+  UNKNOWN means the request came from memory that is not backed by a file on
+  disk: shellcode, a reflectively loaded DLL, or an in-memory PowerShell
+  assembly such as Invoke-Mimikatz. Legitimate software opens LSASS from code
+  that lives in a signed module, so an unbacked frame is a strong signal
+  regardless of which tool is used.
+
+  Only the *direct* caller matters: the frame right after ntdll and
+  KERNELBASE. .NET applications (Azure guest agent, PowerShell remoting
+  hosts) also show UNKNOWN frames, but deeper in the stack, where JIT-compiled
+  managed code calls framework methods that open the handle. Replay against the
+  OTRF datasets surfaced exactly that noise from a naive "contains UNKNOWN".
+
+  The regex avoids ^, $, \s, \d and lookarounds and is wrapped in .* so it
+  behaves the same in PCRE (Splunk), RE2 (KQL) and Lucene's anchored regex
+  dialect (Elastic).
+references:
+  - https://attack.mitre.org/techniques/T1003/001/
+  - https://www.splunk.com/en_us/blog/security/you-bet-your-lsass-hunting-lsass-access.html
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.credential-access
+  - attack.t1003.001
+  - attack.stealth
+  - attack.t1055
+logsource:
+  product: windows
+  category: process_access
+detection:
+  selection:
+    TargetImage|endswith: '\lsass.exe'
+    CallTrace|re: '.*ntdll\.dll\+[0-9a-fA-F]+\|[^|]*KERNELBASE\.dll\+[0-9a-fA-F]+\|UNKNOWN.*'
+  condition: selection
+falsepositives:
+  - Some EDR and anti-cheat products open LSASS from unpacked code; baseline and exclude by SourceImage hash.
+level: high

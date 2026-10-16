@@ -1,0 +1,41 @@
+title: Scheduled Task Created to Run a Script Interpreter
+id: 5c31c447-7455-4e36-90a3-4194fd6e3e98
+status: test
+description: |
+  Detects schtasks.exe /create where the task action (/tr) runs PowerShell,
+  cmd, a script host or mshta. Pairs with the Security 4698 rule: this one
+  sees who ran schtasks and from where, 4698 sees the task regardless of the
+  API used to register it.
+references:
+  - https://attack.mitre.org/techniques/T1053/005/
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.execution
+  - attack.persistence
+  - attack.privilege-escalation
+  - attack.t1053.005
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_img:
+    - Image|endswith: '\schtasks.exe'
+    - OriginalFileName: schtasks.exe
+  selection_create:
+    CommandLine|contains|windash: ' -create '
+  selection_action:
+    CommandLine|contains|windash: ' -tr '
+    CommandLine|contains:
+      - 'powershell'
+      - 'pwsh'
+      - 'cmd.exe /c'
+      - 'cmd /c'
+      - 'wscript'
+      - 'cscript'
+      - 'mshta'
+      - 'rundll32'
+  condition: all of selection_*
+falsepositives:
+  - Admin and software-deployment scripts that schedule PowerShell maintenance jobs; exclude by task name.
+level: medium

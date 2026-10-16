@@ -1,0 +1,40 @@
+title: Run Key Persistence Launching a Script Interpreter
+id: 9712f0e8-8aae-4e48-8ac3-5e3833edf6e3
+status: test
+description: |
+  Detects a Run or RunOnce value whose data starts PowerShell, a script host,
+  mshta, rundll32 or regsvr32. Installers register executables under Run;
+  registering an interpreter with inline arguments is how fileless
+  persistence (Empire, Kovter-style loaders) survives a reboot.
+references:
+  - https://attack.mitre.org/techniques/T1547/001/
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.persistence
+  - attack.t1547.001
+logsource:
+  product: windows
+  category: registry_set
+detection:
+  selection_key:
+    TargetObject|contains:
+      - '\Software\Microsoft\Windows\CurrentVersion\Run\'
+      - '\Software\Microsoft\Windows\CurrentVersion\RunOnce\'
+      - '\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Run\'
+      - '\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\RunOnce\'
+  selection_data:
+    Details|contains:
+      - 'powershell'
+      - 'pwsh'
+      - 'wscript'
+      - 'cscript'
+      - 'mshta'
+      - 'rundll32'
+      - 'regsvr32'
+      - 'cmd.exe /c'
+      - 'cmd /c'
+  condition: all of selection_*
+falsepositives:
+  - OneDrive and Teams updaters occasionally register rundll32 entries; exclude the exact Details value.
+level: high

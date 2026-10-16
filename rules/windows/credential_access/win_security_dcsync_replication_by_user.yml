@@ -1,0 +1,37 @@
+title: DCSync - Directory Replication Requested by a User Account
+id: 559575e6-81be-4aeb-bee4-b8b7f0fc82ce
+status: test
+description: |
+  Detects directory replication rights (DS-Replication-Get-Changes and
+  DS-Replication-Get-Changes-All) being exercised by an account that is not a
+  domain controller computer account. Domain controllers replicate as
+  MACHINE$; a user account replicating secrets is the signature of DCSync
+  (mimikatz lsadump::dcsync, secretsdump, Empire, Covenant).
+  Requires "Audit Directory Service Access" on domain controllers.
+references:
+  - https://attack.mitre.org/techniques/T1003/006/
+  - https://learn.microsoft.com/en-us/windows/win32/adschema/r-ds-replication-get-changes-all
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.credential-access
+  - attack.t1003.006
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4662
+    AccessMask: '0x100'
+    Properties|contains:
+      - '1131f6aa-9c07-11d1-f79f-00c04fc2dcd2'  # DS-Replication-Get-Changes
+      - '1131f6ad-9c07-11d1-f79f-00c04fc2dcd2'  # DS-Replication-Get-Changes-All
+      - '89e95b76-444d-4c62-991a-0facbeda640c'  # DS-Replication-Get-Changes-In-Filtered-Set
+  filter_dc:
+    SubjectUserName|endswith: '$'
+  filter_msol:
+    SubjectUserName|startswith: 'MSOL_'
+  condition: selection and not 1 of filter_*
+falsepositives:
+  - Entra Connect (MSOL_*) and other identity sync services; add their service accounts to a filter.
+level: high

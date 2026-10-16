@@ -1,0 +1,33 @@
+title: Scheduled Task Registered Under \Microsoft\Windows\ by a User
+id: a30fd006-74ba-42ad-a9b7-4a6ef0b6c3c3
+status: test
+description: |
+  Detects a scheduled task created (Security 4698) inside the
+  \Microsoft\Windows\ folder by a non-machine account. Windows' own tasks are
+  registered by the OS or by servicing (SYSTEM, MACHINE$); attackers hide
+  tasks among them so they blend in during triage.
+references:
+  - https://attack.mitre.org/techniques/T1053/005/
+  - https://attack.mitre.org/techniques/T1036/004/
+author: DaveyD347
+date: 2026-10-16
+tags:
+  - attack.persistence
+  - attack.t1053.005
+  - attack.stealth
+  - attack.t1036.004
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4698
+    TaskName|startswith: '\Microsoft\Windows\'
+  filter_machine:
+    SubjectUserName|endswith: '$'
+  filter_system:
+    SubjectUserSid: S-1-5-18
+  condition: selection and not 1 of filter_*
+falsepositives:
+  - Office and Edge updaters registering tasks while running as the signed-in user; exclude by TaskName.
+level: medium
