@@ -1,0 +1,78 @@
+# How Sigma logsources map onto raw Windows event telemetry for local replay.
+#
+# A Sigma rule says *what* it needs (`category: process_creation`), not *where*
+# that data lives. SIEM backends answer that with processing pipelines; the
+# replay engine answers it here, so the assumption is explicit and reviewed.
+#
+# Each logsource lists one or more `sources`. An event belongs to the logsource
+# if it matches any source's `match` (case-insensitive on strings, since real
+# collectors disagree: OTRF data contains both "Security" and "security").
+# `fields` renames Sigma taxonomy fields to the event's native field names for
+# that source. Fields not listed are looked up by their Sigma name.
+
+windows:
+  categories:
+    process_creation:
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 1}
+      - match: {Channel: Security, EventID: 4688}
+        fields:
+          Image: NewProcessName
+          ParentImage: ParentProcessName
+          ProcessId: NewProcessId
+          User: SubjectUserName
+    network_connection:
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 3}
+    image_load:
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 7}
+    create_remote_thread:
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 8}
+    raw_access_thread:
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 9}
+    process_access:
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 10}
+    file_event:
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 11}
+    registry_add:
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 12, EventType: CreateKey}
+    registry_delete:
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 12, EventType: DeleteKey}
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 12, EventType: DeleteValue}
+    registry_set:
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 13}
+    registry_rename:
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 14}
+    registry_event:
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 12}
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 13}
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 14}
+    pipe_created:
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 17}
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 18}
+    wmi_event:
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 19}
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 20}
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 21}
+    dns_query:
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 22}
+    file_delete:
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 23}
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational, EventID: 26}
+    ps_script:
+      - match: {Channel: Microsoft-Windows-PowerShell/Operational, EventID: 4104}
+    ps_module:
+      - match: {Channel: Microsoft-Windows-PowerShell/Operational, EventID: 4103}
+  # Service-based logsources select a channel; the rule's own detection is
+  # expected to pin the EventID, as in upstream Sigma.
+  services:
+    security:
+      - match: {Channel: Security}
+    system:
+      - match: {Channel: System}
+    sysmon:
+      - match: {Channel: Microsoft-Windows-Sysmon/Operational}
+    powershell:
+      - match: {Channel: Microsoft-Windows-PowerShell/Operational}
+    powershell-classic:
+      - match: {Channel: Windows PowerShell}
+    taskscheduler:
+      - match: {Channel: Microsoft-Windows-TaskScheduler/Operational}
